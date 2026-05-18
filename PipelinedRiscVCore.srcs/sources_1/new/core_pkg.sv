@@ -128,7 +128,8 @@ typedef struct packed
     
     //Control Flags
     logic RegWriteE;
-    logic MemWriteE;
+    logic[3:0] MemWriteE;
+    logic MemReadE;
     alusrc_e ALUSrcE;
     resultsrc_e ResultSrcE;
     alu_opps_e ALUControlE;
@@ -148,7 +149,8 @@ typedef struct packed
     
     //Control Flags
     logic RegWriteM;
-    logic MemWriteM;
+    logic MemReadM;
+    logic[3:0] MemWriteM;
     resultsrc_e ResultSrcM;
     width_e SizeM;
 } p_ex_mem_s;
