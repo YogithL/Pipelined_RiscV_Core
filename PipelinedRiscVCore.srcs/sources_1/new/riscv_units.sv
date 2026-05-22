@@ -115,9 +115,7 @@ module BranchControlUnit(
     );
     
     logic takeBranch;
-    
-    assign PCSelection = (branchEnable && takeBranch) || jumpEnable ? BRANCH : PCPLUS4;
-    
+        
     always_comb begin
         takeBranch = 1'b0;
         
@@ -130,6 +128,13 @@ module BranchControlUnit(
             BR_BGEU: takeBranch = NZVC[1] || ~NZVC[3];
             default: takeBranch = 1'b0;
         endcase
+        
+        if(branchEnable && takeBranch)
+            PCSelection = BRANCH;
+        else if(jumpEnable)
+            PCSelection = JUMP;
+        else
+            PCSelection = PCPLUS4;
     end
     
 endmodule           

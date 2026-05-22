@@ -2,14 +2,21 @@ package riscV_pkg;
 
 typedef enum logic
 {
-    IMM  = 1'b0,
-    REGB = 1'b1  
-} alusrc_e;
+    PC = 1'b0,
+    REGA = 1'b1  
+} alusrcA_e;
 
 typedef enum logic
 {
-    BRANCH = 1'b00, 
-    PCPLUS4 = 1'b01
+    IMM  = 1'b0,
+    REGB = 1'b1  
+} alusrcB_e;
+
+typedef enum logic
+{
+    BRANCH = 2'b00, 
+    PCPLUS4 = 2'b01,
+    JUMP = 2'b10
 } pc_sel_e;
 
 typedef enum logic[1:0]
@@ -23,10 +30,11 @@ typedef enum logic[1:0]
 {
     MEM = 2'b00,
     ALU =  2'b01,
-    PC4 = 2'b10
+    PC4 = 2'b10,
+    UI_IMM = 2'b11
 } resultsrc_e;
 
-typedef enum logic[2:0]      
+typedef enum logic[3:0]      
 {                            
     //MSB appended with bit30
     // Arithmetic            
@@ -105,6 +113,22 @@ typedef enum logic[2:0]
 
 typedef struct packed
 {
+    
+    logic RegWrite;
+    logic[3:0] MemWrite;
+    logic MemRead;
+    alusrcA_e ALUSrcA;
+    alusrcB_e ALUSrcB;
+    resultsrc_e ResultSrc;
+    alu_opps_e ALUControl;
+    logic Jump;
+    logic Branch;
+    branch_types_e BranchType;
+    width_e Size;
+} ctrlunit_flags_s;
+
+typedef struct packed
+{
     //Data
     logic[31:0] instr;
     logic[31:0] PCD;
@@ -117,10 +141,10 @@ typedef struct packed
     logic[31:0] Rs1E;
     logic[31:0] Rs2E;
     
-    //Need for Hazard Checks
-    logic[4:0] Rs1AddrE;
-    logic[4:0] Rs2AddrE;
-    
+        //Need for Hazard Checks
+        logic[4:0] Rs1AddrE;
+        logic[4:0] Rs2AddrE;
+        
     logic[4:0] RdE;
     logic[31:0] PCE;
     logic[31:0] PCPlus4E;
@@ -130,7 +154,8 @@ typedef struct packed
     logic RegWriteE;
     logic[3:0] MemWriteE;
     logic MemReadE;
-    alusrc_e ALUSrcE;
+    alusrcA_e ALUSrcAE;
+    alusrcB_e ALUSrcBE;
     resultsrc_e ResultSrcE;
     alu_opps_e ALUControlE;
     logic JumpE;
@@ -170,10 +195,6 @@ typedef struct packed
 } p_mem_wb_s;
 
 endpackage: riscV_pkg
-
-
-
-
 
 
 
