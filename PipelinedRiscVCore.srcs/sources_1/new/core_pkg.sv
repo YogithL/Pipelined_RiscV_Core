@@ -21,10 +21,23 @@ typedef enum logic
 
 typedef enum logic[1:0]
 {
-    NO_FORWARD  = 2'b00, 
-    FORWARD_MEM = 2'b01, 
-    FORWARD_WB  = 2'b10
-} forward_sel_e;
+    NO_FORWARD_A = 2'b00, 
+    FORWARD_MEM_A = 2'b01, 
+    FORWARD_WB_A = 2'b10
+} forward_selA_e;
+
+typedef enum logic[1:0]
+{
+    NO_FORWARD_B = 2'b00, 
+    FORWARD_MEM_B = 2'b01, 
+    FORWARD_WB_B = 2'b10
+} forward_selB_e;
+
+typedef enum logic
+{
+    NO_FORWARD_WD = 1'b0, 
+    FORWARD_WD_WB = 1'b1 
+} forward_ld_str_e;
 
 typedef enum logic[1:0]
 {
@@ -141,9 +154,9 @@ typedef struct packed
     logic[31:0] Rs1E;
     logic[31:0] Rs2E;
     
-        //Need for Hazard Checks
-        logic[4:0] Rs1AddrE;
-        logic[4:0] Rs2AddrE;
+    //Need for Hazard
+    logic[4:0] Rs1AddrE;
+    logic[4:0] Rs2AddrE;
         
     logic[4:0] RdE;
     logic[31:0] PCE;
@@ -172,6 +185,9 @@ typedef struct packed
     logic[31:0] ALUResultM;
     logic[31:0] WriteDataM;
     
+    //Need for Hazard
+    logic[4:0] Rs2AddrM;
+        
     //Control Flags
     logic RegWriteM;
     logic MemReadM;
@@ -187,6 +203,9 @@ typedef struct packed
     logic[31:0] PCPlus4W;
     logic[31:0] ALUResultW;
     logic[31:0] ReadDataW;
+    
+    //Need for Hazard
+    logic MemReadW;
     
     //Control Flags
     logic RegWriteW;

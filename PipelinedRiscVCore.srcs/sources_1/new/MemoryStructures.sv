@@ -1,10 +1,10 @@
-import riscV_pkg::*;
 
 module ROM(
     input logic clk,
     input logic[31:0] fetch_addr,
     output logic[31:0] instruction
     );
+    import riscV_pkg::*;
 
     logic[31:0] ROMArray[0:1023];
     logic[9:0] word_index;
@@ -31,6 +31,7 @@ module RAM(
     input logic[31:0] write_data,
     output logic[31:0] read_data
     );
+    import riscV_pkg::*;
     
     logic[31:0] RAMArray[0:2047];
     logic[10:0] wordIndex;    
@@ -54,7 +55,7 @@ endmodule
 
 
 
-module DataAligner(
+module DataAligner import riscV_pkg::*;(
     input width_e size,
     input logic[31:0] write_data,
     input logic[31:0] addr,

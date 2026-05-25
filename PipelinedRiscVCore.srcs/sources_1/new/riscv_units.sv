@@ -1,13 +1,11 @@
-import riscV_pkg::*;
-
-module ALU(
+module ALU import riscV_pkg::*;(
     input logic[31:0] A,
     input logic[31:0] B,
     input alu_opps_e ALUControl, //Append funct3 with bit30
     output logic[31:0] ALUResult,
     output logic[3:0] NZVC
     );
-    
+        
     always_comb begin
         ALUResult = 32'b0;
         NZVC = 4'b0000;
@@ -60,6 +58,7 @@ module RegFile(
     output logic[31:0] readData1,
     output logic[31:0] readData2
     );
+    import riscV_pkg::*;
     
     logic[31:0] RegArray[0:31];
     
@@ -85,7 +84,7 @@ module RegFile(
     end
 endmodule
 
-module ImmGen(
+module ImmGen import riscV_pkg::*;(
     input logic[31:0] instr,
     input immsrc_e immControl,
     output logic[31:0] imm
@@ -106,16 +105,15 @@ endmodule
 
 
 
-module BranchControlUnit(
+module BranchControlUnit import riscV_pkg::*;(
     input logic[3:0] NZVC,
     input logic branchEnable,
     input logic jumpEnable,
     input branch_types_e branchType,
-    output pc_sel_e PCSelection
+    output pc_sel_e PCSelection,
+    output logic takeBranch
     );
-    
-    logic takeBranch;
-        
+             
     always_comb begin
         takeBranch = 1'b0;
         

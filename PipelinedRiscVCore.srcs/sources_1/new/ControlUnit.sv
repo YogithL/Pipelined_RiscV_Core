@@ -1,5 +1,5 @@
 
-module ControlUnit(
+module ControlUnit import riscV_pkg::*;(
     input logic[6:0] opcode,
     input logic[2:0] funct3,
     input logic[6:0] funct7,
@@ -41,6 +41,7 @@ module ControlUnit(
             
             OP_Branch: begin
                 flags.ALUSrcB = REGB;
+                flags.ALUSrcA = REGA;
                 flags.ALUControl = ALU_ADD;
                 flags.Branch = 1'b1;
                 flags.BranchType = branch_types_e'(funct3);
@@ -67,7 +68,6 @@ module ControlUnit(
             end
             
             OP_JALR: begin
-                flags.RegWrite = 1'b1;
                 flags.ALUSrcA = REGA; 
                 flags.ALUSrcB = IMM;     
                 flags.ALUControl = ALU_ADD;
