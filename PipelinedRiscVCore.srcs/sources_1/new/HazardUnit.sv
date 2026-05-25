@@ -25,7 +25,7 @@ module HazardUnit import riscV_pkg::*;(
         else
             forwardA = NO_FORWARD_A; 
             
-        if(Rs2AddrE == RdM && (RdW != 0) && regWriteM)
+        if(Rs2AddrE == RdM && (RdM != 0) && regWriteM)
             forwardB = FORWARD_MEM_B;
         else if(Rs2AddrE == RdW && (RdW != 0) && regWriteW)
             forwardB = FORWARD_WB_B;
