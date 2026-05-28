@@ -58,8 +58,11 @@ module ControlUnit import riscV_pkg::*;(
             
             OP_LUI: begin
                 flags.RegWrite = 1'b1;
-                flags.ResultSrc = UI_IMM;
+                flags.ResultSrc = ALU;
+                flags.ALUSrcA = ZERO;
+                flags.ALUSrcB = IMM;
                 immControl = IMM_U;
+                flags.ALUControl = ALU_ADD;
             end
             
             OP_AUIPC: begin

@@ -1,9 +1,10 @@
 package riscV_pkg;
 
-typedef enum logic
+typedef enum logic[1:0]
 {
-    PC = 1'b0,
-    REGA = 1'b1  
+    PC = 2'b00,
+    REGA = 2'b01,
+    ZERO = 2'b10  
 } alusrcA_e;
 
 typedef enum logic
@@ -43,8 +44,7 @@ typedef enum logic[1:0]
 {
     MEM = 2'b00,
     ALU =  2'b01,
-    PC4 = 2'b10,
-    UI_IMM = 2'b11
+    PC4 = 2'b10
 } resultsrc_e;
 
 typedef enum logic[3:0]      
@@ -164,17 +164,7 @@ typedef struct packed
     logic[31:0] ImmE;
     
     //Control Flags
-    logic RegWriteE;
-    logic[3:0] MemWriteE;
-    logic MemReadE;
-    alusrcA_e ALUSrcAE;
-    alusrcB_e ALUSrcBE;
-    resultsrc_e ResultSrcE;
-    alu_opps_e ALUControlE;
-    logic JumpE;
-    logic BranchE;
-    branch_types_e BranchType;
-    width_e SizeE;
+    ctrlunit_flags_s ControlFlags;
 } p_id_ex_s;
 
 typedef struct packed
