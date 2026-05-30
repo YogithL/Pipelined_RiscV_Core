@@ -197,12 +197,28 @@ module riscv_core import riscV_pkg::*;(
         assign Branch_Addr = outID_EX.ImmE + outID_EX.PCE;
     
     
+        p_ex_mem_s inEX_MEM;
+            assign inEX_MEM.RdM = outID_EX.RdE;
+            assign inEX_MEM.PCPlus4M = outID_EX.PCE;
+            assign inEX_MEM.ALUResultM = ALU_Out;
+            assign inEX_MEM.WriteDataM = forwardMuxOutB;
+            assign inEX_MEM.Rs2AddrM = outID_EX.Rs2AddrE;
+            assign inEX_MEM.RegWriteM = outID_EX.ControlFlags.RegWriteE;
+            assign inEX_MEM.MemReadM = outID_EX.ControlFlags.MemReadE;     
+            assign inEX_MEM.MemWriteM = outID_EX.ControlFlags.MemWriteE;   
+            assign inEX_MEM.ResultSrcM = outID_EX.ControlFlags.ResultSrcE;
+            assign inEX_MEM.SizeM = outID_EX.ControlFlags.SizeE;  
+                   
+        p_ex_mem_s outEX_MEM;
     
+        REG_EX_MEM reg_ex(
+            .clk(clk),
+            .rst_n(reset_n),
+            .in_EX_MEM(inEX_MEM),
+            .out_EX_MEM(outEX_MEM)
+            );
     
-    
-    
-    
-    
+    //MemWrite
     
 endmodule
 
