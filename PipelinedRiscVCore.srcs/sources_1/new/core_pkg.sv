@@ -2,8 +2,8 @@ package riscV_pkg;
 
 typedef enum logic[1:0]
 {
-    PC = 2'b00,
-    REGA = 2'b01,
+    REGA = 2'b00,
+    PC = 2'b01,
     ZERO = 2'b10  
 } alusrcA_e;
 
@@ -13,7 +13,7 @@ typedef enum logic
     REGB = 1'b1  
 } alusrcB_e;
 
-typedef enum logic
+typedef enum logic[1:0]
 {
     BRANCH = 2'b00, 
     PCPLUS4 = 2'b01,

@@ -1,0 +1,50 @@
+module riscv_system import riscV_pkg::*;(
+    input logic clk,
+    input logic reset_n
+    );
+    
+    //ROM Interface                    
+    logic[31:0] PCF;            
+    logic[31:0] InstrF;
+    logic[31:0] pcMuxOut;          
+                                       
+    //RAM Interface                    
+    logic[3:0] MemWrite;        
+    logic MemRead;        
+    logic[31:0] Read_Write_Addr;
+    logic[31:0] write_data;    
+    logic[31:0] read_data;        
+    
+    riscv_core core(   
+        .clk(clk),                      
+        .reset_n(reset_n),                  
+                                              
+        //ROM Interface                       
+        .PCF(PCF),               
+        .InstrF(InstrF),
+        .pcMuxOut(pcMuxOut),             
+                                              
+        //RAM Interface                       
+        .MemWrite(MemWrite),           
+        .MemRead(MemRead),                 
+        .Read_Write_Addr(Read_Write_Addr),   
+        .write_data(write_data),        
+        .read_data(read_data)           
+    );                                    
+     
+    ROM rom(
+        .clk(clk),
+        .fetch_addr(pcMuxOut),
+        .instruction(InstrF)
+        );
+        
+    RAM ram(
+        .clk(clk),
+        .MemWrite(MemWrite),
+        .MemRead(MemRead),
+        .addr(Read_Write_Addr),
+        .write_data(write_data),
+        .read_data(read_data)
+        );
+    
+endmodule

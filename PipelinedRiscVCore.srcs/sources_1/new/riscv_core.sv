@@ -6,11 +6,12 @@ module riscv_core import riscV_pkg::*;(
     //ROM Interface
     output logic[31:0] PCF,
     input logic[31:0] InstrF,
+    output logic[31:0] pcMuxOut,
     
     //RAM Interface
     output logic[3:0] MemWrite,
     output logic MemRead,
-    output logic[31:0] ReadAddr,
+    output logic[31:0] Read_Write_Addr,
     output logic[31:0] write_data,
     input logic[31:0] read_data
     );
@@ -18,34 +19,34 @@ module riscv_core import riscV_pkg::*;(
     //PC
         //PC Freeze
             logic pcEnable;
-        
+            logic[31:0] pcMuxOut_int;   // internal signal
+            assign pcMuxOut = pcMuxOut_int;  // drive port from it
+            
         //PC MUX
-            PCSelection pcMuxSel;
+            pc_sel_e pcMuxSel;
             logic[31:0] ALU_Out;
             logic[31:0] Branch_Addr;
-            logic[31:0] PCPlus4;
-            logic[31:0] pcMuxOut;
+            logic[31:0] PCPlus4F;
         
             always_comb begin
                 case(pcMuxSel)
-                    BRANCH: pcMuxOut = Branch_Addr;
-                    PCPLUS4: pcMuxOut = PCPlus4;
-                    JUMP: pcMuxOut = ALU_Out; 
-                    default: pcMuxOut = PCPlus4;
+                    BRANCH: pcMuxOut_int = Branch_Addr;
+                    PCPLUS4: pcMuxOut_int = PCPlus4F;
+                    JUMP: pcMuxOut_int = ALU_Out; 
+                    default: pcMuxOut_int = PCPlus4F;
                 endcase
             end
         
         //PC Register    
             always_ff @(posedge clk or negedge reset_n) begin
                 if(!reset_n)
-                    PCF <= 32'b0;
+                    PCF <= 32'hFFFFFFFC;
                 else if(pcEnable)
-                   PCF <= pcMuxOut;
+                   PCF <= pcMuxOut_int;
             end
             
         //PCPlus4
-            logic[31:0] PCPlus4F;
-            assign PCPlus4F = pcMuxOut + 3'd4;
+            assign PCPlus4F = PCF + 32'd4;
             
             
             
@@ -155,10 +156,31 @@ module riscv_core import riscV_pkg::*;(
         logic[31:0] srcMuxOutB;
         logic[3:0] NZVC;
         
-        //Forwarding Muxes done at end with full Hazard Unit
+        //Forward Mux Variables, declaring outEX_MEM for forwardMuxes
+            p_ex_mem_s outEX_MEM; 
+            forward_selA_e forwardMuxASel;
+            forward_selB_e forwardMuxBSel;
+            
             logic[31:0] forwardMuxOutA;
             logic[31:0] forwardMuxOutB;
-
+            
+            always_comb begin                                            
+                case(forwardMuxASel)                                      
+                    NO_FORWARD_A: forwardMuxOutA = outID_EX.Rs1E;         
+                    FORWARD_MEM_A: forwardMuxOutA = outEX_MEM.ALUResultM; 
+                    FORWARD_WB_A: forwardMuxOutA = resultMuxOut;          
+                    default: forwardMuxOutA = outID_EX.Rs1E;              
+                endcase                                                   
+                                                                          
+                case(forwardMuxBSel)                                      
+                    NO_FORWARD_B: forwardMuxOutB = outID_EX.Rs2E;         
+                    FORWARD_MEM_B: forwardMuxOutB = outEX_MEM.ALUResultM; 
+                    FORWARD_WB_B: forwardMuxOutB = resultMuxOut;          
+                    default: forwardMuxOutB = outID_EX.Rs2E;              
+                endcase                                                   
+            end                                                          
+            
+            
         //Source Muxes
             always_comb begin
                 case(outID_EX.ControlFlags.ALUSrcA)
@@ -195,30 +217,96 @@ module riscv_core import riscV_pkg::*;(
             );
         
         assign Branch_Addr = outID_EX.ImmE + outID_EX.PCE;
-    
-    
+        
         p_ex_mem_s inEX_MEM;
             assign inEX_MEM.RdM = outID_EX.RdE;
-            assign inEX_MEM.PCPlus4M = outID_EX.PCE;
+            assign inEX_MEM.PCPlus4M = outID_EX.PCPlus4E;
             assign inEX_MEM.ALUResultM = ALU_Out;
             assign inEX_MEM.WriteDataM = forwardMuxOutB;
             assign inEX_MEM.Rs2AddrM = outID_EX.Rs2AddrE;
-            assign inEX_MEM.RegWriteM = outID_EX.ControlFlags.RegWriteE;
-            assign inEX_MEM.MemReadM = outID_EX.ControlFlags.MemReadE;     
-            assign inEX_MEM.MemWriteM = outID_EX.ControlFlags.MemWriteE;   
-            assign inEX_MEM.ResultSrcM = outID_EX.ControlFlags.ResultSrcE;
-            assign inEX_MEM.SizeM = outID_EX.ControlFlags.SizeE;  
-                   
-        p_ex_mem_s outEX_MEM;
+            assign inEX_MEM.RegWriteM = outID_EX.ControlFlags.RegWrite;
+            assign inEX_MEM.MemReadM = outID_EX.ControlFlags.MemRead;     
+            assign inEX_MEM.MemWriteM = outID_EX.ControlFlags.MemWrite;   
+            assign inEX_MEM.ResultSrcM = outID_EX.ControlFlags.ResultSrc;
+            assign inEX_MEM.SizeM = outID_EX.ControlFlags.Size;
     
-        REG_EX_MEM reg_ex(
+        REG_EX_MEM ex_mem(
             .clk(clk),
             .rst_n(reset_n),
             .in_EX_MEM(inEX_MEM),
             .out_EX_MEM(outEX_MEM)
             );
     
-    //MemWrite
+    //Mem Write
+        logic[31:0] alignedWD;
+        logic[31:0] alignedRD;
+        
+        assign MemRead = outEX_MEM.MemReadM;
+        assign MemWrite = outEX_MEM.MemWriteM;
+        assign Read_Write_Addr = outEX_MEM.ALUResultM; 
+        assign write_data = alignedWD;
+        
+        //inMEM_WB, outMEM_WB, and mem_wb module all declared previously in Decode
+            assign inMEM_WB.RdW = outEX_MEM.RdM;
+            assign inMEM_WB.PCPlus4W = outEX_MEM.PCPlus4M;
+            assign inMEM_WB.ALUResultW = outEX_MEM.ALUResultM;
+            assign inMEM_WB.ReadDataW = alignedRD; //SA
+            assign inMEM_WB.MemReadW = outEX_MEM.MemReadM;
+            assign inMEM_WB.RegWriteW = outEX_MEM.RegWriteM;
+            assign inMEM_WB.ResultSrcW = outEX_MEM.ResultSrcM;
+            assign inMEM_WB.SizeW = outEX_MEM.SizeM;
+        
+        logic[31:0] forwardWDOut; //If we need to Store the output of the previous Load 
+                       
+        DataAligner data_aligner(
+            .size(outMEM_WB.SizeW),
+            .write_data(forwardWDOut),
+            .addr(Read_Write_Addr),
+            .read_data(read_data),
+            .aligned_WD(alignedWD),
+            .aligned_RD(alignedRD)
+            );
+    
+    //Write Back
+        //Only consists of ResultMux which was handled back in Decode
+    
+    
+    //Hazard Control Unit 
+        forward_ld_str_e forwardWD;
+        
+        HazardUnit hazard_unit(
+            .Rs1AddrD(outIF_ID.instr[19:15]),
+            .Rs2AddrD(outIF_ID.instr[24:20]),
+            .Rs1AddrE(outID_EX.Rs1AddrE),
+            .Rs2AddrE(outID_EX.Rs2AddrE),
+            .Rs2AddrM(outEX_MEM.Rs2AddrM),
+            .RdE(outID_EX.RdE),
+            .RdM(outEX_MEM.RdM),
+            .RdW(outMEM_WB.RdW),
+            .memReadE(outID_EX.ControlFlags.MemRead),
+            .memReadW(outMEM_WB.MemReadW),
+            .branchTaken(takeBranch),
+            .memWriteD(controlFlags.MemWrite),
+            .memWriteM(outEX_MEM.MemWriteM),
+            .regWriteM(outEX_MEM.RegWriteM),
+            .regWriteW(outMEM_WB.RegWriteW),
+            .forwardA(forwardMuxASel),
+            .forwardB(forwardMuxBSel),
+            .forwardWD(forwardWD),
+            .pcEnable(pcEnable),
+            .IF_ID_Enable(IF_ID_Enable),
+            .FlushD(flushIF_ID),
+            .FlushE(flushID_EX)
+            );
+        
+        //Forwarding Muxes for LD -> STR
+            always_comb begin
+                case(forwardWD)
+                    NO_FORWARD_WD: forwardWDOut = outEX_MEM.WriteDataM;
+                    FORWARD_WD_WB: forwardWDOut = outMEM_WB.ReadDataW; 
+                    default: forwardWDOut = outEX_MEM.WriteDataM;
+                endcase
+            end     
     
 endmodule
 

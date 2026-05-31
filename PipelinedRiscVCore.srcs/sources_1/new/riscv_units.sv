@@ -117,15 +117,17 @@ module BranchControlUnit import riscV_pkg::*;(
     always_comb begin
         takeBranch = 1'b0;
         
-        case(branchType)
-            BR_BEQ: takeBranch = NZVC[1];
-            BR_BNE: takeBranch = ~NZVC[1];
-            BR_BLT: takeBranch = NZVC[0] ^ NZVC[2];
-            BR_BLTU: takeBranch = NZVC[3];
-            BR_BGE: takeBranch = NZVC[1] || ~(NZVC[0] ^ NZVC[2]);
-            BR_BGEU: takeBranch = NZVC[1] || ~NZVC[3];
-            default: takeBranch = 1'b0;
-        endcase
+        if(branchEnable) begin
+            case(branchType)
+                BR_BEQ: takeBranch = NZVC[1];
+                BR_BNE: takeBranch = ~NZVC[1];
+                BR_BLT: takeBranch = NZVC[0] ^ NZVC[2];
+                BR_BLTU: takeBranch = NZVC[3];
+                BR_BGE: takeBranch = NZVC[1] || ~(NZVC[0] ^ NZVC[2]);
+                BR_BGEU: takeBranch = NZVC[1] || ~NZVC[3];
+                default: takeBranch = 1'b0;
+            endcase
+        end
         
         if(branchEnable && takeBranch)
             PCSelection = BRANCH;

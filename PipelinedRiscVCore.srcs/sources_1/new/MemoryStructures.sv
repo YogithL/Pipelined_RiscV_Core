@@ -16,7 +16,7 @@ module ROM(
     end
     
     initial begin
-        $readmemh("", ROMArray);
+        $readmemh("ROMMemFile.mem", ROMArray);
     end
 
 endmodule
@@ -44,11 +44,13 @@ module RAM(
             if(MemWrite[2]) RAMArray[wordIndex][23:16] <= write_data[23:16];
             if(MemWrite[3]) RAMArray[wordIndex][31:24] <= write_data[31:24];
         end
-        
+    end
+    
+    always_comb begin
         if(MemRead)
-            read_data <= RAMArray[wordIndex];
+            read_data = RAMArray[wordIndex];
         else
-            read_data <= 32'b0;
+            read_data = 32'b0;
     end
     
 endmodule

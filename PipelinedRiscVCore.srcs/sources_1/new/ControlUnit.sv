@@ -39,12 +39,19 @@ module ControlUnit import riscV_pkg::*;(
             end 
            
             OP_Store: begin
-                flags.MemWrite = 1'b1;
                 flags.ALUSrcB = IMM;
                 //ResultSrcE doesn't matter since RegWrite low
                 flags.ALUControl = ALU_ADD;
                 flags.Size = width_e'(funct3);
                 immControl = IMM_S;
+                
+                case(funct3)
+                    3'b010: flags.MemWrite = 4'b1111;
+                    3'b001: flags.MemWrite = 4'b0011;
+                    3'b000: flags.MemWrite = 4'b0001;
+                    default: flags.MemWrite = 4'b1111;
+                endcase     
+        
             end
             
             OP_Branch: begin
@@ -93,13 +100,6 @@ module ControlUnit import riscV_pkg::*;(
             end
             
         endcase
-    end        
-                                               
-                          
-        
-    
-    
-    
-    
+    end
     
 endmodule
