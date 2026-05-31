@@ -1,17 +1,32 @@
-// 0. ADDI x7, x0, 5
-00500393
+// addi x1, x0, 100
+06400093
 
-// 1. ADDI x1, x0, 16 
-01000093    
+// addi x2, x0, 5
+00500113
 
-// 2. ADDI x2, x0, 255
-0ff00113    
+//Load to Store
+// sw x2, 0(x1) //Storing first
+0020a023
+// lw x3, 0(x1)
+0000a183
+// sw x3, 0(x1) //Check if x3 == 5
+0030a023
 
-// 3. SW x2, 0(x1)
-0020a023    
+//Load-Use Stall
+// lw x4, 0(x1)
+0000a203
+// addi x5, x4, x0 //check if x5 == 5
+00020293
 
-// 4. LW x3, 0(x1)
-0000a183    
+//Branch
+// BEQ x0, x5, 8
+00500463
+// addi x6, x0, 1 //Branch shouldnt be taken, so x6 should be 1
+00100313
 
-// 5. ADD x4, x3, x2
-00218233
+// BEQ x5, x5, 8
+00528463
+// addi x2, x2, 1 //If x2 now is 6, branch wasn't taken, when it shouldve
+00110113
+// addi x2, x2, 2 //If x2 now is 7, branch was taken, good
+00210113

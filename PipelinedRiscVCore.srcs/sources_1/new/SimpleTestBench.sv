@@ -1,7 +1,6 @@
 `timescale 1ns / 1ps
 
 module SimpleTestBench();
-    
     logic clk;
     logic reset_n;
     
@@ -17,23 +16,38 @@ module SimpleTestBench();
     
     initial begin
         reset_n = 1;
-        #10;
+        #1; 
         reset_n = 0;
-        #10;
+        #20;
         reset_n = 1;
         
-        #200;
+        #300;
         
-        if(dut.core.reg_file.RegArray[7] === 32'h00000005)
-            $display("[PASS] ROM Check: x7 = 5");
+        //Load -> Store
+        if(dut.core.reg_file.RegArray[3] === 5) 
+            $display("Test Passed: My result was %0d, expected was 5", dut.core.reg_file.RegArray[3]);  
         else
-            $display("[FAIL] ROM Check: Expected x7=5, I got x7 = %0h", dut.core.reg_file.RegArray[7]);
-        
-        if(dut.core.reg_file.RegArray[4] === 32'h000001FE)
-            $display("[PASS] RAM/Hazard Check: x4=1fe");
+            $display("Test Failed: My result was %0d, expected was 5", dut.core.reg_file.RegArray[3]);
+            
+        //Load Use Stall
+        if(dut.core.reg_file.RegArray[5] === 5) 
+            $display("Test Passed: My result was %0d, expected was 5", dut.core.reg_file.RegArray[5]);  
         else
-            $display("[FAIL] RAM/Hazard Check: Expected x4=1fe, got x4=%0h", dut.core.reg_file.RegArray[4]);
+            $display("Test Failed: My result was %0d, expected was 5", dut.core.reg_file.RegArray[5]);
         
+        //Branch not Taken
+        if(dut.core.reg_file.RegArray[6] === 1) 
+            $display("Test Passed: My result was %0d, expected was 1", dut.core.reg_file.RegArray[5]);  
+        else
+            $display("Test Failed: My result was %0d, expected was 1", dut.core.reg_file.RegArray[5]);
+        
+        //Branch Taken
+        if(dut.core.reg_file.RegArray[2] === 7) 
+            $display("Test Passed: My result was %0d, expected was 8", dut.core.reg_file.RegArray[2]);  
+        else
+            $display("Test Failed: My result was %0d, expected was 8", dut.core.reg_file.RegArray[2]);
+            
+            
         $finish;
     end
     

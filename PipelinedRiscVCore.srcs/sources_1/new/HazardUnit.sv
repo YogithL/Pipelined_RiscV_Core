@@ -45,7 +45,7 @@ module HazardUnit import riscV_pkg::*;(
         else
             forwardWD = NO_FORWARD_WD;
         
-        //Flushing, + flag collision
+        //Flushing, + Stall collision
         if(branchTaken) begin
             pcEnable = 1'b1; 
             IF_ID_Enable = 1'b1;
