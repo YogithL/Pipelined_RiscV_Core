@@ -37,7 +37,7 @@ module ControlUnit import riscV_pkg::*;(
                 flags.Size = width_e'(funct3);
                 immControl = IMM_I;
             end 
-           
+            
             OP_Store: begin
                 flags.ALUSrcB = IMM;
                 //ResultSrcE doesn't matter since RegWrite low

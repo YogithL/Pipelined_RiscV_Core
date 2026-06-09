@@ -11,7 +11,8 @@ module riscv_core import riscV_pkg::*;(
     //RAM Interface
     output logic[3:0] MemWrite,
     output logic MemRead,
-    output logic[31:0] Read_Write_Addr,
+    output logic[31:0] Read_Addr,
+    output logic[31:0] Write_Addr,
     output logic[31:0] write_data,
     input logic[31:0] read_data
     );
@@ -113,7 +114,7 @@ module riscv_core import riscV_pkg::*;(
         
         RegFile reg_file(
             .clk(clk),
-            .RegWrite(outMEM_WB.RegWriteW),  
+            .RegWrite(outMEM_WB.RegWriteW), 
             .readAddr1(outIF_ID.instr[19:15]),
             .readAddr2(outIF_ID.instr[24:20]),
             .writeAddr(outMEM_WB.RdW),
@@ -163,8 +164,11 @@ module riscv_core import riscV_pkg::*;(
             
             logic[31:0] forwardMuxOutA;
             logic[31:0] forwardMuxOutB;
-            
-            always_comb begin                                            
+             
+            always_comb begin              
+//                $display("[Time %0t] EX_STAGE:Rs1=%d | Rs2=%d | ALU_Result=%d | RegWrite=%b", 
+//                         $time, outID_EX.Rs1E, outID_EX.Rs2E, ALU_Out, outID_EX.ControlFlags.RegWrite);                                      
+                                
                 case(forwardMuxASel)                                      
                     NO_FORWARD_A: forwardMuxOutA = outID_EX.Rs1E;         
                     FORWARD_MEM_A: forwardMuxOutA = outEX_MEM.ALUResultM; 
@@ -243,7 +247,8 @@ module riscv_core import riscV_pkg::*;(
         
         assign MemRead = outEX_MEM.MemReadM;
         assign MemWrite = outEX_MEM.MemWriteM;
-        assign Read_Write_Addr = outEX_MEM.ALUResultM; 
+        assign Read_Addr = ALU_Out; 
+        assign Write_Addr= outEX_MEM.ALUResultM;
         assign write_data = alignedWD;
         
         //inMEM_WB, outMEM_WB, and mem_wb module all declared previously in Decode
@@ -254,15 +259,18 @@ module riscv_core import riscV_pkg::*;(
             assign inMEM_WB.MemReadW = outEX_MEM.MemReadM;
             assign inMEM_WB.RegWriteW = outEX_MEM.RegWriteM;
             assign inMEM_WB.ResultSrcW = outEX_MEM.ResultSrcM;
-            assign inMEM_WB.SizeW = outEX_MEM.SizeM;
+            assign inMEM_WB.WriteDataW = alignedWD;
+            assign inMEM_WB.MemWriteW = outEX_MEM.MemWriteM; 
         
-        logic[31:0] forwardWDOut; //If we need to Store the output of the previous Load 
-                       
+        logic[31:0] forwardWDOut; //If we need to Store the output of the previous Load
+        logic[31:0] forwardRDOut; //If we need to Load the output of the previous Store
+        
         DataAligner data_aligner(
-            .size(outMEM_WB.SizeW),
+            .size(outEX_MEM.SizeM),
             .write_data(forwardWDOut),
-            .addr(Read_Write_Addr),
-            .read_data(read_data),
+            .read_addr(outEX_MEM.ALUResultM),
+            .write_addr(outEX_MEM.ALUResultM),
+            .read_data(forwardRDOut),
             .aligned_WD(alignedWD),
             .aligned_RD(alignedRD)
             );
@@ -273,6 +281,7 @@ module riscv_core import riscV_pkg::*;(
     
     //Hazard Control Unit 
         forward_ld_str_e forwardWD;
+        forward_str_ld_e forwardRD;
         
         HazardUnit hazard_unit(
             .Rs1AddrD(outIF_ID.instr[19:15]),
@@ -283,30 +292,44 @@ module riscv_core import riscV_pkg::*;(
             .RdE(outID_EX.RdE),
             .RdM(outEX_MEM.RdM),
             .RdW(outMEM_WB.RdW),
+            .ALUResultM(outEX_MEM.ALUResultM),
+            .ALUResultW(outMEM_WB.ALUResultW),
             .memReadE(outID_EX.ControlFlags.MemRead),
+            .memReadM(outEX_MEM.MemReadM),
             .memReadW(outMEM_WB.MemReadW),
             .branchTaken(takeBranch),
             .memWriteD(controlFlags.MemWrite),
             .memWriteM(outEX_MEM.MemWriteM),
+            .memWriteW(outMEM_WB.MemWriteW),
             .regWriteM(outEX_MEM.RegWriteM),
             .regWriteW(outMEM_WB.RegWriteW),
             .forwardA(forwardMuxASel),
             .forwardB(forwardMuxBSel),
             .forwardWD(forwardWD),
+            .forwardRD(forwardRD),
             .pcEnable(pcEnable),
             .IF_ID_Enable(IF_ID_Enable),
             .FlushD(flushIF_ID),
             .FlushE(flushID_EX)
             );
         
-        //Forwarding Muxes for LD -> STR
+        //Forwarding Muxes for Operation -> STR
             always_comb begin
                 case(forwardWD)
                     NO_FORWARD_WD: forwardWDOut = outEX_MEM.WriteDataM;
-                    FORWARD_WD_WB: forwardWDOut = outMEM_WB.ReadDataW; 
+                    FORWARD_WD_WB: forwardWDOut = resultMuxOut;
                     default: forwardWDOut = outEX_MEM.WriteDataM;
                 endcase
             end     
+        
+        //Forwarding Muxes for STR -> LD
+            always_comb begin
+                case(forwardRD)
+                    NO_FORWARD_RD: forwardRDOut = read_data;
+                    FORWARD_RD_WB: forwardRDOut = outMEM_WB.WriteDataW;
+                    default: forwardRDOut = read_data;
+                endcase
+            end
     
 endmodule
 

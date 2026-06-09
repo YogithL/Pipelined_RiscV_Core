@@ -10,8 +10,8 @@ module riscv_system import riscV_pkg::*;(
                                        
     //RAM Interface                    
     logic[3:0] MemWrite;        
-    logic MemRead;        
-    logic[31:0] Read_Write_Addr;
+    logic[31:0] Read_Addr;
+    logic[31:0] Write_Addr;
     logic[31:0] write_data;    
     logic[31:0] read_data;        
     
@@ -26,8 +26,8 @@ module riscv_system import riscV_pkg::*;(
                                               
         //RAM Interface                       
         .MemWrite(MemWrite),           
-        .MemRead(MemRead),                 
-        .Read_Write_Addr(Read_Write_Addr),   
+        .Read_Addr(Read_Addr),   
+        .Write_Addr(Write_Addr),
         .write_data(write_data),        
         .read_data(read_data)           
     );                                    
@@ -41,10 +41,11 @@ module riscv_system import riscV_pkg::*;(
     RAM ram(
         .clk(clk),
         .MemWrite(MemWrite),
-        .MemRead(MemRead),
-        .addr(Read_Write_Addr),
+        .read_addr(Read_Addr),
+        .write_addr(Write_Addr),
         .write_data(write_data),
         .read_data(read_data)
         );
+        
     
 endmodule
