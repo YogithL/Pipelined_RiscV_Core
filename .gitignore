@@ -1,32 +1,20 @@
-# Vivado Process and Debug files
-vivado_pid*.debug
-vivado_pid*.zip
-dfx_runtime.txt
-tclapp/
-2025.2/
-XilinxTclStore/
-*.xml
-
-
-# Vivado Specific Ignores
+# Vivado / Xilinx Junk
 *.jou
 *.log
-*.str
-*.backup*
-.Xil/
-xsim.dir/
+*.pb
 *.wdb
+*.str
+.Xil/
+.cache/
+.hw/
+.sim/
+.runs/
+*.xpr
+
+# UVM / Simulation Binaries
+sim/
 *.vcd
-
-
-# Build/Output files (Optional: keep if you want others to see your bitstream)
-*.bit
-*.bin
-*.sysdef
-*.hwdef
-
-
-# OS and Editor junk
-.DS_Store
-Thumbs.db
-.vscode/
+*.fsdb
+csrc/
+simv*
+*.daidir/
