@@ -79,10 +79,10 @@ typedef enum logic[3:0]
 
 typedef enum logic[2:0]
 {
-    BR_BEQ  = 3'b000, //Branch if equal                          
-    BR_BNE  = 3'b001, //Branch if not equal                      
-    BR_BLT  = 3'b100, //Branch if less than (Signed)             
-    BR_BGE  = 3'b101, //Branch if greater or equal (Signed)      
+    BR_BEQ = 3'b000, //Branch if equal                          
+    BR_BNE = 3'b001, //Branch if not equal                      
+    BR_BLT = 3'b100, //Branch if less than (Signed)             
+    BR_BGE = 3'b101, //Branch if greater or equal (Signed)      
     BR_BLTU = 3'b110, //Branch if less than (Unsigned)           
     BR_BGEU = 3'b111  //Branch if greater or equal (Unsigned)    
 } branch_types_e;

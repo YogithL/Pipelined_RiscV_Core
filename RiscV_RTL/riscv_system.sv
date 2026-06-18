@@ -4,7 +4,6 @@ module riscv_system import riscV_pkg::*;(
     );
     
     //ROM Interface                    
-    logic[31:0] PCF;            
     logic[31:0] InstrF;
     logic[31:0] pcMuxOut;          
                                        
@@ -20,7 +19,6 @@ module riscv_system import riscV_pkg::*;(
         .reset_n(reset_n),                  
                                               
         //ROM Interface                       
-        .PCF(PCF),               
         .InstrF(InstrF),
         .pcMuxOut(pcMuxOut),             
                                               
