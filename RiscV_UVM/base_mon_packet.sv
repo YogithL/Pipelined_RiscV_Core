@@ -6,6 +6,12 @@ class base_mon_packet extends uvm_sequence_item;
         super.new(name);
     endfunction
 
+    //PC
+    logic[31:0] PC;
+    logic branchTaken;
+    logic branchEnable;
+    logic jumpEnable;
+
     //Flags
     logic mem_read;
     logic reg_write;
@@ -26,6 +32,12 @@ class base_mon_packet extends uvm_sequence_item;
     virtual function string convert2string();
         string s = "";
         
+        if(jumpEnable)
+            s = {s, $sformatf("JUMP: PC -> 32'h%08x  ", PC)};
+        else if(branchEnable)
+            s = {s, $sformatf("BRANCH: %s, Target PC -> 32'h%08x  ", 
+                              branchTaken ? "TAKEN" : "NOT_TAKEN", PC)};
+        
         if(reg_write && rd_addr != 0) 
             s = {s, $sformatf("REG_WRITE: x%0d <- 32'h%08x  ", rd_addr, rd_data)};
             
@@ -40,5 +52,5 @@ class base_mon_packet extends uvm_sequence_item;
             
         return s;
     endfunction
-    
+
 endclass

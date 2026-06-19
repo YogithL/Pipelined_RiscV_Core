@@ -83,7 +83,7 @@ class base_stim_packet extends uvm_sequence_item;
     endfunction
 
     virtual function string convert2string();
-        case (opcode)
+        case(opcode)
             OP_Reg: 
                 return $sformatf("%s x%0d, x%0d, x%0d \t\t[Raw: 32'h%08x]", 
                                  alu_opps_f3.name(), rd, rs1, rs2, instr);
