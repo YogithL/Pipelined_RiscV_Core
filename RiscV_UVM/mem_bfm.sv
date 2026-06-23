@@ -27,8 +27,9 @@ interface mem_bfm(input logic clk);
             read_data <= read_data_out; 
     endtask
             
-    function void sampleReadData(output logic[31:0] read_data_in);
-        read_data_in = read_data;
-    endfunction
+    task sampleReadData(output logic[31:0] read_data_in);
+        @(posedge clk);
+            read_data_in = read_data;
+    endtask
 
 endinterface
