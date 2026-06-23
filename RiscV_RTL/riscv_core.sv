@@ -56,13 +56,17 @@ module riscv_core import riscV_pkg::*;(
         logic IF_ID_Enable;
         logic flushIF_ID;
         
+        logic valid_opF;
+        assign valid_opF = 1'b1; 
+            
         p_if_id_s inIF_ID;
-            assign inIF_ID.instr = InstrF;
-            assign inIF_ID.PCD = PCF;
-            assign inIF_ID.PCPlus4D = PCPlus4F;
-        
+        assign inIF_ID.instr = InstrF;
+        assign inIF_ID.PCD = PCF;
+        assign inIF_ID.PCPlus4D = PCPlus4F;
+        assign inIF_ID.valid_opD = valid_opF; 
+            
         p_if_id_s outIF_ID;
-        
+            
         REG_IF_ID if_id(
             .clk(clk),
             .rst_n(reset_n),
@@ -70,13 +74,13 @@ module riscv_core import riscV_pkg::*;(
             .CLR(flushIF_ID),
             .in_IF_ID(inIF_ID),
             .out_IF_ID(outIF_ID)
-            );
-        
+        );        
         
         
     //Decode
         ctrlunit_flags_s controlFlags;
         immsrc_e immControl;
+        logic valid_opE;
         
         ControlUnit control_unit(
             .opcode(outIF_ID.instr[6:0]),
@@ -141,6 +145,7 @@ module riscv_core import riscV_pkg::*;(
                 assign inID_EX.PCPlus4E = outIF_ID.PCPlus4D;
                 assign inID_EX.ImmE = Imm;
                 assign inID_EX.ControlFlags = controlFlags;
+                assign inID_EX.valid_opE = outIF_ID.valid_opD;
                 
             p_id_ex_s outID_EX; 
             logic flushID_EX;
@@ -167,9 +172,6 @@ module riscv_core import riscV_pkg::*;(
             logic[31:0] forwardMuxOutB;
              
             always_comb begin              
-//                $display("[Time %0t] EX_STAGE:Rs1=%d | Rs2=%d | ALU_Result=%d | RegWrite=%b", 
-//                         $time, outID_EX.Rs1E, outID_EX.Rs2E, ALU_Out, outID_EX.ControlFlags.RegWrite);                                      
-                                
                 case(forwardMuxASel)                                      
                     NO_FORWARD_A: forwardMuxOutA = outID_EX.Rs1E;         
                     FORWARD_MEM_A: forwardMuxOutA = outEX_MEM.ALUResultM; 
@@ -234,6 +236,7 @@ module riscv_core import riscV_pkg::*;(
             assign inEX_MEM.MemWriteM = outID_EX.ControlFlags.MemWrite;   
             assign inEX_MEM.ResultSrcM = outID_EX.ControlFlags.ResultSrc;
             assign inEX_MEM.SizeM = outID_EX.ControlFlags.Size;
+            assign inEX_MEM.valid_opM = outID_EX.valid_opE;
     
         REG_EX_MEM ex_mem(
             .clk(clk),
@@ -262,6 +265,8 @@ module riscv_core import riscV_pkg::*;(
             assign inMEM_WB.ResultSrcW = outEX_MEM.ResultSrcM;
             assign inMEM_WB.WriteDataW = alignedWD;
             assign inMEM_WB.MemWriteW = outEX_MEM.MemWriteM; 
+            assign inMEM_WB.valid_opW = outEX_MEM.valid_opM;
+
         
         logic[31:0] forwardWDOut; //If we need to Store the output of the previous Load
         logic[31:0] forwardRDOut; //If we need to Load the output of the previous Store

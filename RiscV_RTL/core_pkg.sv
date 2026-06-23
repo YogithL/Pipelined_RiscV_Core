@@ -150,6 +150,8 @@ typedef struct packed
 
 typedef struct packed
 {
+    logic valid_opD;
+    
     //Data
     logic[31:0] instr;
     logic[31:0] PCD;
@@ -158,6 +160,8 @@ typedef struct packed
 
 typedef struct packed
 {
+    logic valid_opE;
+
     //Data
     logic[31:0] Rs1E;
     logic[31:0] Rs2E;
@@ -177,6 +181,8 @@ typedef struct packed
 
 typedef struct packed
 {
+    logic valid_opM;
+
     //Data
     logic[4:0] RdM;
     logic[31:0] PCPlus4M;
@@ -196,6 +202,8 @@ typedef struct packed
 
 typedef struct packed
 {
+    logic valid_opW;
+
     //Data
     logic[4:0] RdW;
     logic[31:0] PCPlus4W;
