@@ -23,8 +23,7 @@ interface mem_bfm(input logic clk);
     endtask
 
     task memRead(input logic[31:0] read_data_out);
-        @(posedge clk);
-            read_data <= read_data_out; 
+        read_data <= read_data_out; 
     endtask
             
     task sampleReadData(output logic[31:0] read_data_in);
