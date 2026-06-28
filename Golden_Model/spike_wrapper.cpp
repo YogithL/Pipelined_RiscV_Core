@@ -1,7 +1,9 @@
+#include <iostream>
 #include "processor.h"
 #include "mmu.h"
 #include "simif.h"
 #include "disasm.h"
+#include "cfg.h"
 
 static processor_t* proc = nullptr;
 
@@ -13,7 +15,10 @@ extern "C"
         {
             const char* isa = "rv32i";
             const char* priv = "m";
-            proc = new processor_t(isa, priv, "none", nullptr, 0, false, stdout);
+            
+            static cfg_t cfg; 
+
+            proc = new processor_t(isa, priv, &cfg, nullptr, 0, false, stdout, std::cerr);
         }
     }
 
@@ -37,9 +42,8 @@ extern "C"
         return (int)proc->get_state()->pc;
     }
 
-    void spike_write_mem(int addr, int data)
-    {
-        proc->get_mmu()->store_uint32(addr, data);
+    void spike_write_mem(int addr, int data) {
+        proc->get_mmu()->store<uint32_t>((reg_t)addr, (uint32_t)data);
     }
 
     void spike_set_pc(int val)
