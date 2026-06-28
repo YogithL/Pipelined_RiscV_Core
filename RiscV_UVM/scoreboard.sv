@@ -72,5 +72,3 @@ class scoreboard extends uvm_scoreboard;
 
         end
     endtask
-
-endclass
