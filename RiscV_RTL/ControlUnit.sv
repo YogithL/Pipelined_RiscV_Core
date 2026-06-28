@@ -83,6 +83,7 @@ module ControlUnit import riscV_pkg::*;(
             
             OP_JAL: begin
                 flags.RegWrite = 1'b1;
+                flags.Jump = 1'b1;
                 flags.ResultSrc = PC4;
                 flags.ALUSrcA = PC; 
                 flags.ALUSrcB = IMM;     
@@ -92,6 +93,7 @@ module ControlUnit import riscV_pkg::*;(
             
             OP_JALR: begin
                 flags.RegWrite = 1'b1;
+                flags.Jump = 1'b1;
                 flags.ResultSrc = PC4;
                 flags.ALUSrcA = REGA; 
                 flags.ALUSrcB = IMM;     
