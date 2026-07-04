@@ -20,6 +20,7 @@ class scoreboard extends uvm_scoreboard;
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
+        golden_init();
         
         instr_export = new("instr_export", this);
         mem_export = new("mem_export", this);
@@ -52,8 +53,9 @@ class scoreboard extends uvm_scoreboard;
 
             if(RegPacket.retire_valid == 1'b1) begin
                 instrPacket = instr_fifo.get();
+                golden_step(instrPacket.instr);
 
-                case(instrPacket.instr[6:0])
+                case(instrPacket.instr[6:0]) 
                     OP_Store, OP_Load: MemPacket = mem_fifo.get();
                     
                     OP_Branch, OP_JAL, OP_JALR: begin
@@ -64,11 +66,81 @@ class scoreboard extends uvm_scoreboard;
                     end
                 endcase
 
+                opcodes_e opcode = opcodes_e'(instrPacket.instr[6:0]);
+                int expected_data_reg = golden_get_reg(RegPacket.rd_addr);
+                width_e mem_width = width_e'(instrPacket.instr[14:12]);
+                int expected_data_mem = golden_read_mem(MemPacket.write_addr, mem_width);
                 
+                case(instrPacket.instr[6:0])
+                    OP_Reg, OP_Imm, OP_Load, OP_LUI, OP_AUIPC: begin
+                        if(RegPacket.rd_data == expected_data)
+                            `uvm_info(
+                                "REG_PASS",
+                                $sformatf(
+                                    "[%s] MATCH | rd: x%0d | data: 0x%08h | Packet: %s", 
+                                    opcode.name(), 
+                                    RegPacket.rd_addr, 
+                                    RegPacket.rd_data, 
+                                    RegPacket.convert2string()
+                                ), 
+                                UVM_HIGH 
+                            )
 
+                        else begin
+                            `uvm_error(
+                                    "REG_FAIL",
+                                    $sformatf("[%s] MISMATCH! rd: x%0d | Expected: 0x%08h | Actual (RTL): 0x%08h\n\tPacket: %s", 
+                                        opcode.name(), 
+                                        RegPacket.rd_addr, 
+                                        expected_data_reg, 
+                                        RegPacket.rd_data, 
+                                        RegPacket.convert2string()
+                                    )
+                                )        
+
+                            golden_write_reg(RegPacket.rd_addr, RegPacket.rd_data);
+                        end
+                    end
+
+                    OP_Store: begin
+                        if(MemPacket.write_data == expected_data_mem)
+                                `uvm_info(
+                                    "MEM_PASS", 
+                                    $sformatf("[%s] MATCH | Addr: 0x%08h | Data: 0x%08h | Width: %s\n\tPacket: %s", 
+                                        opcode.name(),
+                                        MemPacket.addr,
+                                        MemPacket.write_data,
+                                        mem_width.name(),
+                                        MemPacket.convert2string()
+                                    ), 
+                                    UVM_HIGH
+                                )
+                        
+                        else begin
+                            `uvm_error(
+                                "MEM_FAIL", 
+                                $sformatf("[%s] MISMATCH! Addr: 0x%08h | Expected Data: 0x%08h | Actual RTL Data: 0x%08h\n\tPacket: %s", 
+                                    opcode.name(),
+                                    MemPacket.addr,
+                                    expected_data_mem,
+                                    MemPacket.write_data,
+                                    MemPacket.convert2string()
+                                )
+                            )
+
+                            golden_write_mem(MemPacket.addr, MemPacket.write_data, mem_width);
+                            
+                        end
+                    end
+
+                    OP_Branch, OP_JAL, OP_JALR: begin
+
+                    end
+
+
+                endcase
                 
             end
-
-
         end
     endtask
+endclass

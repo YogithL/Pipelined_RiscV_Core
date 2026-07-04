@@ -2,10 +2,12 @@ package riscv_uvm_pkg;
 
     import uvm_pkg::*;
     `include "uvm_macros.svh"
+    import riscv_core_pkg::*;
 
     import "DPI-C" context function void golden_init();
     import "DPI-C" context function void golden_step(int instr);
     import "DPI-C" context function int  golden_get_reg(int reg_idx);
+    import "DPI-C" context function void golden_write_reg(int reg_idx, int val);
     import "DPI-C" context function int  golden_get_pc();
     import "DPI-C" context function void golden_write_mem(int addr, int data, int width_enum);
     import "DPI-C" context function int  golden_read_mem(int addr, int width_enum);
