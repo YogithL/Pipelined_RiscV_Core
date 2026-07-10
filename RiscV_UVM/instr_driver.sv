@@ -10,6 +10,10 @@ class instr_driver extends uvm_driver;
 
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
+
+        if(!uvm_config_db#(virtual instr_bfm)::get(this, "", "instr_vif", instr_vif))
+            `uvm_fatal("VIF_ERROR", "Handle to interface not found");
+
     endfunction
 
     task run_phase(uvm_phase phase);

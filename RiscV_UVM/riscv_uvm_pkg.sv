@@ -33,6 +33,7 @@ package riscv_uvm_pkg;
     `include "reg_agent.sv"
 
     `include "scoreboard.sv"
-    //need to add env, coverage, test, sequenece
+    `include "environment.sv"
+    //need to add coverage, test, sequenece
 
 endpackage: riscv_uvm_pkg
