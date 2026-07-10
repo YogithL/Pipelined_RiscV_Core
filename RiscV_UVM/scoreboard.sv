@@ -1,5 +1,6 @@
 
 class scoreboard extends uvm_scoreboard;
+    import riscV_pkg::*;
     `uvm_component_utils(scoreboard)
 
     uvm_tlm_analysis_fifo#(base_stim_packet) instr_fifo;
@@ -55,25 +56,26 @@ class scoreboard extends uvm_scoreboard;
                 instrPacket = instr_fifo.get();
                 golden_step(instrPacket.instr);
 
-                case(instrPacket.instr[6:0]) 
+                opcodes_e opcode = opcodes_e'(instrPacket.instr[6:0]);
+                int expected_data_reg = golden_get_reg(RegPacket.rd_addr);
+                width_e mem_width = width_e'(instrPacket.instr[14:12]);
+                int expected_data_mem = golden_read_mem(MemPacket.write_addr, mem_width);
+                int expected_pc = golden_get_pc();
+
+                case(opcode) 
                     OP_Store, OP_Load: MemPacket = mem_fifo.get();
                     
                     OP_Branch, OP_JAL, OP_JALR: begin
                         PCPacket = pc_fifo.get();
 
                         while(PCPacket.pcMuxOut == 32'b0) 
-                            PCPacket = pc_fifo.get(); 
+                            PCPacket = pc_fifo.get();                        
                     end
                 endcase
-
-                opcodes_e opcode = opcodes_e'(instrPacket.instr[6:0]);
-                int expected_data_reg = golden_get_reg(RegPacket.rd_addr);
-                width_e mem_width = width_e'(instrPacket.instr[14:12]);
-                int expected_data_mem = golden_read_mem(MemPacket.write_addr, mem_width);
                 
-                case(instrPacket.instr[6:0])
+                case(opcode)
                     OP_Reg, OP_Imm, OP_Load, OP_LUI, OP_AUIPC: begin
-                        if(RegPacket.rd_data == expected_data)
+                        if(RegPacket.rd_data == expected_data_reg)
                             `uvm_info(
                                 "REG_PASS",
                                 $sformatf(
@@ -134,10 +136,29 @@ class scoreboard extends uvm_scoreboard;
                     end
 
                     OP_Branch, OP_JAL, OP_JALR: begin
-
+                        if(PCPacket.pcMuxOut == expected_pc)
+                            `uvm_info(
+                                "BRANCH_PASS", 
+                                $sformatf("[%s] MATCH | Target PC: 0x%08h\n\tPacket: %s", 
+                                    opcode.name(),
+                                    PCPacket.pcMuxOut,
+                                    instrPacket.convert2string()
+                                ), 
+                                UVM_HIGH
+                            )
+                        
+                        else begin
+                            `uvm_error(
+                                "BRANCH_FAIL", 
+                                $sformatf("[%s] MISMATCH! Expected Target PC: 0x%08h | Actual RTL PC: 0x%08h\n\tPacket: %s", 
+                                    opcode.name(),
+                                    expected_pc,
+                                    PCPacket.pcMuxOut,
+                                    instrPacket.convert2string()
+                                )
+                            )
+                        end
                     end
-
-
                 endcase
                 
             end
