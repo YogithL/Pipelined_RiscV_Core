@@ -19,6 +19,9 @@ module riscv_core import riscV_pkg::*;(
     //PC
             logic[31:0] PCF;
             
+            //stress test
+            assign PCF = 32'b0;
+            
         //PC Freeze
             logic pcEnable;
             logic[31:0] pcMuxOut_int;   // internal signal

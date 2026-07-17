@@ -68,7 +68,7 @@ class scoreboard extends uvm_scoreboard;
                     OP_Branch, OP_JAL, OP_JALR: begin
                         PCPacket = pc_fifo.get();
 
-                        while(PCPacket.pcMuxOut == 32'b0) 
+                        while(PCPacket.pcMuxOut == 32'b0 || PCPacket.pcMuxOut == 32'd4) 
                             PCPacket = pc_fifo.get();                        
                     end
                 endcase

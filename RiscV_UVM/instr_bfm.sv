@@ -1,6 +1,6 @@
 
 interface instr_bfm(input logic clk);
-
+    
     logic[31:0] instr;
     
     task sendInstr(input logic[31:0] instr_out);

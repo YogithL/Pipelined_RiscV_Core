@@ -3,7 +3,7 @@ package riscv_uvm_pkg;
     import uvm_pkg::*;
     `include "uvm_macros.svh"
     import riscv_core_pkg::*;
-
+    
     import "DPI-C" context function void golden_init();
     import "DPI-C" context function void golden_step(int instr);
     import "DPI-C" context function int  golden_get_reg(int reg_idx);
@@ -16,6 +16,8 @@ package riscv_uvm_pkg;
     `include "mem_packet.sv"
     `include "pc_packet.sv"
     `include "reg_packet.sv"
+
+    `include "rand_sequence.sv"
 
     `include "instr_monitor.sv"
     `include "mem_monitor.sv"
@@ -33,7 +35,9 @@ package riscv_uvm_pkg;
     `include "reg_agent.sv"
 
     `include "scoreboard.sv"
+
     `include "environment.sv"
-    //need to add coverage, test, sequenece
+    
+    `include "base_test.sv"
 
 endpackage: riscv_uvm_pkg
