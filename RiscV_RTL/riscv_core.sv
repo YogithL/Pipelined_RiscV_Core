@@ -17,11 +17,8 @@ module riscv_core import riscV_pkg::*;(
     );
     
     //PC
-            logic[31:0] PCF;
-            
-            //stress test
-            assign PCF = 32'b0;
-            
+        logic[31:0] PCF;
+                        
         //PC Freeze
             logic pcEnable;
             logic[31:0] pcMuxOut_int;   // internal signal
@@ -144,7 +141,7 @@ module riscv_core import riscV_pkg::*;(
                 assign inID_EX.Rs1AddrE = outIF_ID.instr[19:15];
                 assign inID_EX.Rs2AddrE = outIF_ID.instr[24:20];
                 assign inID_EX.RdE = outIF_ID.instr[11:7];
-                assign inID_EX.PCE = outIF_ID.PCD;
+                assign inID_EX.PCE = 32'b0; //outIF_ID.PCD;
                 assign inID_EX.PCPlus4E = outIF_ID.PCPlus4D;
                 assign inID_EX.ImmE = Imm;
                 assign inID_EX.ControlFlags = controlFlags;
