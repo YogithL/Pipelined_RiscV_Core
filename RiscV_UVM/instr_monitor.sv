@@ -24,6 +24,9 @@ class instr_monitor extends uvm_monitor;
         forever begin
             packet = base_stim_packet::type_id::create("packet");
             instr_vif.sampleInstr(packet.instr);
+            
+            packet.decode_instr();
+            
             ap_instr.write(packet);
         end
 

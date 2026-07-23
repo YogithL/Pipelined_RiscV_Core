@@ -1,3 +1,6 @@
+`ifndef CORE_PKG_SV
+`define CORE_PKG_SV
+
 package riscV_pkg;
 
 typedef enum logic[1:0]
@@ -222,7 +225,7 @@ typedef struct packed
 
 endpackage: riscV_pkg
 
-
+`endif
 
 
 

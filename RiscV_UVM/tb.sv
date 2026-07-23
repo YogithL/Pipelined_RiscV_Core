@@ -1,8 +1,15 @@
+`include "instr_bfm.sv"
+`include "mem_bfm.sv"
+`include "pc_bfm.sv"
+`include "reg_bfm.sv"
+
+`include "riscv_uvm_pkg.sv"
 
 module tb();
 
     import riscV_pkg::*;
     import uvm_pkg::*;
+    import riscv_uvm_pkg::*;
     `include "uvm_macros.svh" 
 
     logic clk;
@@ -40,7 +47,20 @@ module tb();
     assign pcBfm.branchTaken = dut.takeBranch;
     assign pcBfm.jumpEnable = dut.outID_EX.ControlFlags.Jump;
 
-    initial begin
+	generate
+        genvar i;
+        for (i = 0; i < 32; i++) begin : backdoor_init_loop
+            initial begin
+                #1; 
+                force dut.reg_file.RegArray[i] = 32'h00000000;
+                
+                #1; 
+                release dut.reg_file.RegArray[i];
+            end
+        end
+    endgenerate
+    
+  	initial begin
         clk = 0;
         forever #5 clk = ~clk;
     end

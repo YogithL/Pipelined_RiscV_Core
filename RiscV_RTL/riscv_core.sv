@@ -1,3 +1,4 @@
+`include "core_pkg.sv"
 
 module riscv_core import riscV_pkg::*;(
     input logic clk,

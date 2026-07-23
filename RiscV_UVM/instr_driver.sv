@@ -1,5 +1,5 @@
 
-class instr_driver extends uvm_driver;
+class instr_driver extends uvm_driver#(base_stim_packet);
     `uvm_component_utils(instr_driver)
 
     virtual instr_bfm instr_vif;
@@ -22,7 +22,7 @@ class instr_driver extends uvm_driver;
         forever begin
             seq_item_port.get_next_item(packet);
 
-            packet.instr_gen();
+            void'(packet.instr_gen());
             instr_vif.sendInstr(packet.instr);
             
             seq_item_port.item_done();

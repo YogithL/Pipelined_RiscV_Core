@@ -1,6 +1,6 @@
 
 class base_stim_packet extends uvm_sequence_item;
-    `uvm_object_utils(base_stim_packet);
+    `uvm_object_utils(base_stim_packet)
 
     function new(string name = "base_stim_packet");
         super.new(name);
@@ -121,6 +121,43 @@ class base_stim_packet extends uvm_sequence_item;
         endcase
     endfunction
 
+    function void decode_instr();
+        opcode = opcodes_e'(instr[6:0]);
+        
+        rd = instr[11:7];
+        funct3 = instr[14:12];
+        rs1 = instr[19:15];
+        rs2 = instr[24:20];
+        funct7 = instr[31:25];
+        
+        alu_opps_f3 = alu_opps_e'(funct3);
+        mem_widths_f3 = width_e'(funct3);
+        branch_types_f3 = branch_types_e'(funct3);
+        
+        case(opcode)
+            OP_Imm, OP_Load, OP_JALR: 
+                imm = { {20{instr[31]}}, instr[31:20] };
+
+            OP_Store: 
+                imm = { {20{instr[31]}}, instr[31:25], instr[11:7] };
+
+            OP_Branch: 
+                imm = { {19{instr[31]}}, instr[31], instr[7], instr[30:25], instr[11:8], 1'b0 };
+
+            OP_LUI, OP_AUIPC: 
+                imm = { instr[31:12], 12'b0 };
+
+            OP_JAL: 
+                imm = { {11{instr[31]}}, instr[31], instr[19:12], instr[20], instr[30:21], 1'b0 };
+
+            OP_Reg: 
+                imm = 32'b0;
+
+            default: 
+                imm = 32'b0;
+        endcase
+    endfunction
+    
 endclass
 
 

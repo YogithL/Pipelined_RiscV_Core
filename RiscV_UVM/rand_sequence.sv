@@ -7,15 +7,17 @@ class rand_sequence extends uvm_sequence#(base_stim_packet);
     endfunction
 
     virtual task body();
-        req = base_stim_packet::type_id::create("req");
+        repeat(100) begin
+            req = base_stim_packet::type_id::create("req");
 
-        start_item(req);
-        
-        if(!req.randomize()) begin
-            `uvm_error("SEQ", "Randomization of base_stim_packet failed!")
+            start_item(req);
+            
+            if(!req.randomize()) begin
+                `uvm_error("SEQ", "Randomization of base_stim_packet failed!")
+            end
+            
+            finish_item(req);
         end
-        
-        finish_item(req);
     endtask
 
 endclass

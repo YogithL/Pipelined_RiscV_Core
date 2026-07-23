@@ -1,5 +1,5 @@
 
-class mem_driver extends uvm_driver;
+class mem_driver extends uvm_driver#(mem_packet);
     `uvm_component_utils(mem_driver)
    
     virtual mem_bfm mem_vif;

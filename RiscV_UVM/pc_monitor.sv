@@ -27,7 +27,8 @@ class pc_monitor extends uvm_monitor;
             pc_vif.samplePC(packet.pcMuxOut, packet.branchTaken, 
                             packet.branchEnable, packet.jumpEnable);
 
-            ap_pc.write(packet);
+            if(packet.branchEnable || packet.jumpEnable)
+                ap_pc.write(packet);
         end
 
     endtask

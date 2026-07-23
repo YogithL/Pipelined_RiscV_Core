@@ -21,6 +21,6 @@ class base_test extends uvm_test;
         seq.start(env.instrAgent.instrSequencer);
         phase.drop_objection(this);
 
-    endtask;
+    endtask
 
 endclass

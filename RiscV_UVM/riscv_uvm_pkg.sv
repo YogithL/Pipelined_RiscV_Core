@@ -2,7 +2,7 @@ package riscv_uvm_pkg;
 
     import uvm_pkg::*;
     `include "uvm_macros.svh"
-    import riscv_core_pkg::*;
+    import riscV_pkg::*;
     
     import "DPI-C" context function void golden_init();
     import "DPI-C" context function void golden_step(int instr);

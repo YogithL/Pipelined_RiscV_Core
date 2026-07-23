@@ -1,6 +1,6 @@
 
 class mem_monitor extends uvm_monitor;
-    `uvm_component_utils(mem_monitor);
+    `uvm_component_utils(mem_monitor)
 
     virtual mem_bfm mem_vif;
     uvm_analysis_port#(mem_packet) ap_mem;
@@ -24,7 +24,7 @@ class mem_monitor extends uvm_monitor;
         forever begin
             packet = mem_packet::type_id::create("packet");
                         
-            @(posedge clk);
+            @(posedge mem_vif.clk);
                 fork
                     mem_vif.sampleMem(packet.mem_write, packet.mem_read, 
                                       packet.read_addr, packet.write_addr, 
