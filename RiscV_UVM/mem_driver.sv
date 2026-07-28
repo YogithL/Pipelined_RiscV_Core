@@ -33,9 +33,17 @@ class mem_driver extends uvm_driver#(mem_packet);
                     mem_vif.memRead(32'h00000000);
             end
 
-            if(mem_write > 0)
-                SIM_RAM[write_addr] = write_data;
-        end
+          if(mem_write > 0) begin
+                logic [31:0] current_word = SIM_RAM.exists(write_addr) ? SIM_RAM[write_addr] : 32'h0;
+                logic [31:0] new_word = current_word;
+
+                if (mem_write[0]) new_word[7:0]   = write_data[7:0];
+                if (mem_write[1]) new_word[15:8]  = write_data[15:8];
+                if (mem_write[2]) new_word[23:16] = write_data[23:16];
+                if (mem_write[3]) new_word[31:24] = write_data[31:24];
+
+                SIM_RAM[write_addr] = new_word;
+            end        end
     endtask
 
 endclass

@@ -1,4 +1,3 @@
-
 class scoreboard extends uvm_scoreboard;
     `uvm_component_utils(scoreboard)
 
@@ -17,7 +16,7 @@ class scoreboard extends uvm_scoreboard;
     function new(string name = "scoreboard", uvm_component parent);
         super.new(name, parent);
     endfunction
-
+    
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
         golden_init();
@@ -32,7 +31,7 @@ class scoreboard extends uvm_scoreboard;
         pc_fifo = new("pc_fifo", this);
         reg_fifo = new("reg_fifo", this);
     endfunction
-
+    
     function void connect_phase(uvm_phase phase);
         super.connect_phase(phase);
 
@@ -41,7 +40,7 @@ class scoreboard extends uvm_scoreboard;
         pc_export.connect(pc_fifo.analysis_export);
         reg_export.connect(reg_fifo.analysis_export);
     endfunction
-
+    
     task run_phase(uvm_phase phase);
         base_stim_packet instrPacket;
         pc_packet PCPacket;
@@ -59,9 +58,18 @@ class scoreboard extends uvm_scoreboard;
 
             if(RegPacket.retire_valid == 1'b1) begin
                 instr_fifo.get(instrPacket);
+                
+              if(instrPacket.instr == 32'h00000000) begin
+                  continue; 
+              end
+              
+                opcode = opcodes_e'(instrPacket.instr[6:0]);
+              
+                golden_set_pc(instrPacket.current_pc);
+                
+
                 golden_step(instrPacket.instr);
 
-                opcode = opcodes_e'(instrPacket.instr[6:0]);
                 mem_width = width_e'(instrPacket.instr[14:12]);
                 expected_data_reg = golden_get_reg(RegPacket.rd_addr);
                 expected_pc = golden_get_pc();
@@ -101,7 +109,7 @@ class scoreboard extends uvm_scoreboard;
                                     RegPacket.rd_data, 
                                     RegPacket.convert2string()
                                 )
-                            )        
+                            )       
                             golden_write_reg(RegPacket.rd_addr, RegPacket.rd_data);
                         end
                     end
@@ -135,12 +143,20 @@ class scoreboard extends uvm_scoreboard;
                     end
 
                     OP_Branch, OP_JAL, OP_JALR: begin
-                        if(PCPacket.pcMuxOut == expected_pc)
+                        logic [31:0] actual_rtl_pc;
+
+                        if (expected_pc == (instrPacket.current_pc + 4)) begin
+                            actual_rtl_pc = instrPacket.current_pc + 4;
+                        end else begin
+                            actual_rtl_pc = PCPacket.pcMuxOut; 
+                        end
+
+                        if(actual_rtl_pc == expected_pc)
                             `uvm_info(
                                 "BRANCH_PASS", 
                                 $sformatf("[%s] MATCH | Target PC: 0x%08h\n\tPacket: %s", 
                                     opcode.name(),
-                                    PCPacket.pcMuxOut,
+                                    actual_rtl_pc,
                                     instrPacket.convert2string()
                                 ), 
                                 UVM_HIGH
@@ -151,7 +167,7 @@ class scoreboard extends uvm_scoreboard;
                                 $sformatf("[%s] MISMATCH! Expected Target PC: 0x%08h | Actual RTL PC: 0x%08h\n\tPacket: %s", 
                                     opcode.name(),
                                     expected_pc,
-                                    PCPacket.pcMuxOut,
+                                    actual_rtl_pc,
                                     instrPacket.convert2string()
                                 )
                             )

@@ -50,7 +50,6 @@ typedef enum logic
     FORWARD_RD_WB = 1'b1 
 } forward_str_ld_e;
 
-
 typedef enum logic[1:0]
 {
     MEM = 2'b00,
@@ -86,34 +85,34 @@ typedef enum logic[2:0]
     BR_BNE = 3'b001, //Branch if not equal                      
     BR_BLT = 3'b100, //Branch if less than (Signed)             
     BR_BGE = 3'b101, //Branch if greater or equal (Signed)      
-    BR_BLTU = 3'b110, //Branch if less than (Unsigned)           
-    BR_BGEU = 3'b111  //Branch if greater or equal (Unsigned)    
+    BR_BLTU = 3'b110, //Branch if less than (Unsigned)          
+    BR_BGEU = 3'b111  //Branch if greater or equal (Unsigned)   
 } branch_types_e;
 
 typedef enum logic[6:0]
 {
-    //R-Type (1)              
+    //R-Type (1)             
     OP_Reg = 7'b0110011,       
                            
-    //I-Type (2)              
+    //I-Type (2)             
     OP_Imm = 7'b0010011,                
-    //I-Type (2)              
+    //I-Type (2)             
     OP_Load = 7'b0000011,   
-    //I-Type (2)              
+    //I-Type (2)             
     OP_JALR = 7'b1100111,      
                            
-    //S-Type (3)              
+    //S-Type (3)             
     OP_Store = 7'b0100011,     
                            
-    //B-Type (4)              
+    //B-Type (4)             
     OP_Branch = 7'b1100011,     
                            
-    //U-Type (5)              
+    //U-Type (5)             
     OP_LUI = 7'b0110111,                    
-    //U-Type (5)              
+    //U-Type (5)             
     OP_AUIPC = 7'b0010111,     
                            
-    //J-Type (6)              
+    //J-Type (6)             
     OP_JAL = 7'b1101111        
 } opcodes_e;    
 
@@ -137,7 +136,6 @@ typedef enum logic[2:0]
 
 typedef struct packed
 {
-    
     logic RegWrite;
     logic[3:0] MemWrite;
     logic MemRead;
@@ -166,6 +164,7 @@ typedef struct packed
     logic valid_opE;
 
     //Data
+    logic[31:0] InstrE;
     logic[31:0] Rs1E;
     logic[31:0] Rs2E;
     
@@ -187,6 +186,7 @@ typedef struct packed
     logic valid_opM;
 
     //Data
+    logic[31:0] InstrM;
     logic[4:0] RdM;
     logic[31:0] PCPlus4M;
     logic[31:0] ALUResultM;
@@ -208,6 +208,9 @@ typedef struct packed
     logic valid_opW;
 
     //Data
+    // =====================================
+    logic[31:0] InstrW; // ADDED
+    // =====================================
     logic[4:0] RdW;
     logic[31:0] PCPlus4W;
     logic[31:0] ALUResultW;
@@ -226,8 +229,3 @@ typedef struct packed
 endpackage: riscV_pkg
 
 `endif
-
-
-
-
-

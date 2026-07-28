@@ -1,4 +1,9 @@
 `include "core_pkg.sv"
+`include "ControlUnit.sv"
+`include "HazardUnit.sv"
+`include "PipelineRegisters.sv"
+`include "riscv_units.sv"
+`include "MemoryStructures.sv"
 
 module riscv_core import riscV_pkg::*;(
     input logic clk,
@@ -35,12 +40,12 @@ module riscv_core import riscV_pkg::*;(
                 case(pcMuxSel)
                     BRANCH: pcMuxOut_int = Branch_Addr;
                     PCPLUS4: pcMuxOut_int = PCPlus4F;
-                    JUMP: pcMuxOut_int = ALU_Out; 
+                    JUMP: pcMuxOut_int = ALU_Out & ~32'h1; 
                     default: pcMuxOut_int = PCPlus4F;
                 endcase
             end
         
-        //PC Register    
+        //PC Register   
             always_ff @(posedge clk or negedge reset_n) begin
                 if(!reset_n)
                     PCF <= 32'hFFFFFFFC;
@@ -57,8 +62,18 @@ module riscv_core import riscV_pkg::*;(
         logic IF_ID_Enable;
         logic flushIF_ID;
         
-        logic valid_opF;
-        assign valid_opF = 1'b1; 
+        logic valid_opF;  
+  		logic reset_delayed;
+    
+        always_ff @(posedge clk or negedge reset_n) begin
+            if (!reset_n)
+                reset_delayed <= 1'b0;
+            else
+                reset_delayed <= 1'b1;
+        end
+
+	    assign valid_opF = reset_delayed;
+  
             
         p_if_id_s inIF_ID;
         assign inIF_ID.instr = InstrF;
@@ -135,14 +150,15 @@ module riscv_core import riscV_pkg::*;(
             .imm(Imm)
             );
         
-        //ID/EX, preperation for Exectute phase
             p_id_ex_s inID_EX;
+                assign inID_EX.InstrE = outIF_ID.instr;
+                
                 assign inID_EX.Rs1E = RegA;
                 assign inID_EX.Rs2E = RegB;
                 assign inID_EX.Rs1AddrE = outIF_ID.instr[19:15];
                 assign inID_EX.Rs2AddrE = outIF_ID.instr[24:20];
                 assign inID_EX.RdE = outIF_ID.instr[11:7];
-                assign inID_EX.PCE = 32'b0; //outIF_ID.PCD;
+                assign inID_EX.PCE = outIF_ID.PCD;
                 assign inID_EX.PCPlus4E = outIF_ID.PCPlus4D;
                 assign inID_EX.ImmE = Imm;
                 assign inID_EX.ControlFlags = controlFlags;
@@ -158,7 +174,7 @@ module riscv_core import riscV_pkg::*;(
                 .in_ID_EX(inID_EX),
                 .out_ID_EX(outID_EX)
                 );
-           
+            
     //Execute                
         logic[31:0] srcMuxOutA;
         logic[31:0] srcMuxOutB;
@@ -173,20 +189,20 @@ module riscv_core import riscV_pkg::*;(
             logic[31:0] forwardMuxOutB;
              
             always_comb begin              
-                case(forwardMuxASel)                                      
+                case(forwardMuxASel)                                       
                     NO_FORWARD_A: forwardMuxOutA = outID_EX.Rs1E;         
                     FORWARD_MEM_A: forwardMuxOutA = outEX_MEM.ALUResultM; 
                     FORWARD_WB_A: forwardMuxOutA = resultMuxOut;          
-                    default: forwardMuxOutA = outID_EX.Rs1E;              
+                    default: forwardMuxOutA = outID_EX.Rs1E;             
                 endcase                                                   
                                                                           
-                case(forwardMuxBSel)                                      
+                case(forwardMuxBSel)                                       
                     NO_FORWARD_B: forwardMuxOutB = outID_EX.Rs2E;         
                     FORWARD_MEM_B: forwardMuxOutB = outEX_MEM.ALUResultM; 
                     FORWARD_WB_B: forwardMuxOutB = resultMuxOut;          
-                    default: forwardMuxOutB = outID_EX.Rs2E;              
+                    default: forwardMuxOutB = outID_EX.Rs2E;             
                 endcase                                                   
-            end                                                          
+            end                                                           
             
             
         //Source Muxes
@@ -227,6 +243,8 @@ module riscv_core import riscV_pkg::*;(
         assign Branch_Addr = outID_EX.ImmE + outID_EX.PCE;
         
         p_ex_mem_s inEX_MEM;
+            assign inEX_MEM.InstrM = outID_EX.InstrE;
+
             assign inEX_MEM.RdM = outID_EX.RdE;
             assign inEX_MEM.PCPlus4M = outID_EX.PCPlus4E;
             assign inEX_MEM.ALUResultM = ALU_Out;
@@ -257,6 +275,11 @@ module riscv_core import riscV_pkg::*;(
         assign write_data = alignedWD;
         
         //inMEM_WB, outMEM_WB, and mem_wb module all declared previously in Decode
+            // =====================================
+            // ADDED: Pass Instruction to MEM/WB
+            // =====================================
+            assign inMEM_WB.InstrW = outEX_MEM.InstrM;
+            
             assign inMEM_WB.RdW = outEX_MEM.RdM;
             assign inMEM_WB.PCPlus4W = outEX_MEM.PCPlus4M;
             assign inMEM_WB.ALUResultW = outEX_MEM.ALUResultM;
@@ -339,5 +362,3 @@ module riscv_core import riscV_pkg::*;(
             end
     
 endmodule
-
-

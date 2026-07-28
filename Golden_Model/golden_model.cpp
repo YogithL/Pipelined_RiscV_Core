@@ -136,6 +136,14 @@ public:
         }
     }
 
+    // ==========================================
+    // ADDED: Method to force the current PC
+    // ==========================================
+    void set_pc(uint32_t pc)
+    {
+        current_pc = pc;
+    }
+
     uint32_t read_pc()
     {
         return current_pc;
@@ -191,7 +199,11 @@ public:
 
     void step_instruction(uint32_t instr)
     {
-        current_pc = 0; // Default state for non-control instructions
+        // ========================================================
+        // FIXED: Use the actual injected PC, and calculate next_pc
+        // ========================================================
+        uint32_t original_pc = current_pc; 
+        uint32_t next_pc = original_pc + 4; // Default to PC+4
 
         uint8_t opcode = instr & 0x7F;
         uint8_t rd = (instr >> 7) & 0x1F;
@@ -203,8 +215,8 @@ public:
         // Extract and construct immediates
         int32_t imm_i = (int32_t)instr >> 20;
         int32_t imm_s = sign_extend(((funct7 << 5) | rd), 12);
-        int32_t imm_b = sign_extend(((funct7 >> 6) << 12) | ((rd & 1) << 11) | ((funct7 & 0x3F) << 5) | (rd >> 1), 13);
-        int32_t imm_u = instr & 0xFFFFF000;
+		int32_t imm_b = sign_extend(((funct7 >> 6) << 12) | ((rd & 1) << 11) | ((funct7 & 0x3F) << 5) | (rd & 0x1E), 13);
+      int32_t imm_u = instr & 0xFFFFF000;
         int32_t imm_j = sign_extend(((instr >> 31) << 20) | ((instr >> 12) & 0xFF) << 12 | ((instr >> 20) & 0x1) << 11 | ((instr >> 21) & 0x3FF) << 1, 21);
 
         uint32_t rs1_val = read_reg(rs1);
@@ -232,7 +244,7 @@ public:
             break;
             
             case OP_AUIPC:
-                write_reg(rd, 0 + imm_u); // PC is always 0 prior to execution
+                write_reg(rd, original_pc + imm_u); // FIXED: Math from real PC
             break;
             
             case OP_Load:
@@ -246,20 +258,23 @@ public:
             case OP_Branch:
                 if(evaluate_branch(rs1_val, rs2_val, funct3))
                 {
-                    current_pc = 0 + imm_b; // Target computed relative to 0
+                    next_pc = original_pc + imm_b; // FIXED: Math from real PC
                 }
             break;
             
             case OP_JAL:
-                write_reg(rd, 4); // Next instruction is PC+4 (where PC=0)
-                current_pc = 0 + imm_j;
+                write_reg(rd, original_pc + 4); // FIXED: Save real PC+4
+                next_pc = original_pc + imm_j;  // FIXED: Jump from real PC
             break;
         
             case OP_JALR:
-                write_reg(rd, 4);
-                current_pc = (rs1_val + imm_i) & ~1; // LSB cleared per RISC-V spec
+                write_reg(rd, original_pc + 4); // FIXED: Save real PC+4
+                next_pc = (rs1_val + imm_i) & ~1; 
             break;
         }
+
+        // Expose the final target address to the UVM Scoreboard
+        current_pc = next_pc; 
     }
 };
 
@@ -277,6 +292,17 @@ extern "C"
         else
         {
             cpu_model->reset();
+        }
+    }
+
+    // ==========================================
+    // ADDED: DPI-C function to set the PC
+    // ==========================================
+    void golden_set_pc(int pc)
+    {
+        if(cpu_model)
+        {
+            cpu_model->set_pc((uint32_t)pc);
         }
     }
 

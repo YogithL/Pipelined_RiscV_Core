@@ -20,16 +20,15 @@ class instr_monitor extends uvm_monitor;
 
     task run_phase(uvm_phase phase);
         base_stim_packet packet;
-
+        logic valid;
         forever begin
             packet = base_stim_packet::type_id::create("packet");
-            instr_vif.sampleInstr(packet.instr);
-            
-            packet.decode_instr();
-            
-            ap_instr.write(packet);
+            instr_vif.sampleInstr(packet.instr, packet.current_pc, valid);
+            if(valid) begin
+                packet.decode_instr();
+                ap_instr.write(packet);
+            end
         end
-
     endtask
-
+  
 endclass

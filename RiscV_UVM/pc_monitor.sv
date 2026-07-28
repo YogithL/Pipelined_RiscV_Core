@@ -12,7 +12,7 @@ class pc_monitor extends uvm_monitor;
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
-        ap_pc = new("ap_pc", this);
+        ap_pc = new("ap_pc", this);		
 
         if(!uvm_config_db#(virtual pc_bfm)::get(this, "", "pc_vif", pc_vif))
             `uvm_fatal("VIF_ERROR", "Handle to interface not found");
@@ -25,9 +25,9 @@ class pc_monitor extends uvm_monitor;
             packet = pc_packet::type_id::create("packet");
 
             pc_vif.samplePC(packet.pcMuxOut, packet.branchTaken, 
-                            packet.branchEnable, packet.jumpEnable);
+                            packet.branchEnable, packet.jumpEnable,  packet.exValid);
 
-            if(packet.branchEnable || packet.jumpEnable)
+            if((packet.branchEnable || packet.jumpEnable) && packet.exValid)
                 ap_pc.write(packet);
         end
 

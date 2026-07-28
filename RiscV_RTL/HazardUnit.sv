@@ -59,4 +59,3 @@ module HazardUnit import riscV_pkg::*;(
     end
     
 endmodule
-

@@ -11,16 +11,13 @@ module REG_IF_ID import riscV_pkg::*;(
     always_ff @(posedge clk or negedge rst_n) begin
         if(!rst_n)
             out_IF_ID <= '0;
-        
-        else if(CLR)
-            out_IF_ID <= '0; 
-
+        else if(CLR) begin
+            out_IF_ID <= '0;       
+        end
         else if(EN)
             out_IF_ID <= in_IF_ID;
     end
-
 endmodule
-
 
 
 module REG_ID_EX import riscV_pkg::*;(
@@ -34,16 +31,13 @@ module REG_ID_EX import riscV_pkg::*;(
     always_ff @(posedge clk or negedge rst_n) begin
         if(!rst_n)
             out_ID_EX <= '0;
-        
-        else if(CLR)
-            out_ID_EX <= '0;
-
+        else if(CLR) begin
+            out_ID_EX <= '0;      
+        end
         else
             out_ID_EX <= in_ID_EX; 
     end
-
 endmodule
-
 
 
 module REG_EX_MEM import riscV_pkg::*;(
@@ -81,11 +75,3 @@ module REG_MEM_WB import riscV_pkg::*;(
     end
 
 endmodule
-
-
-
-
-
-
-
-

@@ -5,6 +5,7 @@ package riscv_uvm_pkg;
     import riscV_pkg::*;
     
     import "DPI-C" context function void golden_init();
+	import "DPI-C" function void golden_set_pc(int pc);
     import "DPI-C" context function void golden_step(int instr);
     import "DPI-C" context function int  golden_get_reg(int reg_idx);
     import "DPI-C" context function void golden_write_reg(int reg_idx, int val);

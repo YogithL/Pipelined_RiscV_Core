@@ -114,41 +114,34 @@ module BranchControlUnit import riscV_pkg::*;(
     output logic takeBranch
     );
              
+    logic branchTakenCond;
+
     always_comb begin
-        takeBranch = 1'b0;
+        branchTakenCond = 1'b0;
         
         if(branchEnable) begin
             case(branchType)
-                BR_BEQ: takeBranch = NZVC[1];
-                BR_BNE: takeBranch = ~NZVC[1];
-                BR_BLT: takeBranch = NZVC[0] ^ NZVC[2];
-                BR_BLTU: takeBranch = NZVC[3];
-                BR_BGE: takeBranch = NZVC[1] || ~(NZVC[0] ^ NZVC[2]);
-                BR_BGEU: takeBranch = NZVC[1] || ~NZVC[3];
-                default: takeBranch = 1'b0;
+                BR_BEQ:  branchTakenCond = NZVC[1];
+                BR_BNE:  branchTakenCond = ~NZVC[1];
+                BR_BLT:  branchTakenCond = NZVC[0] ^ NZVC[2];
+                BR_BLTU: branchTakenCond = NZVC[3];
+                BR_BGE:  branchTakenCond = NZVC[1] || ~(NZVC[0] ^ NZVC[2]);
+                BR_BGEU: branchTakenCond = NZVC[1] || ~NZVC[3];
+                default: branchTakenCond = 1'b0;
             endcase
         end
         
-        if(branchEnable && takeBranch)
+        if(branchEnable && branchTakenCond)
             PCSelection = BRANCH;
         else if(jumpEnable)
             PCSelection = JUMP;
         else
             PCSelection = PCPLUS4;
+
+        takeBranch = (branchEnable && branchTakenCond) || jumpEnable;
     end
     
-endmodule           
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
+endmodule    
     
     
    

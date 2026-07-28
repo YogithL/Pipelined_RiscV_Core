@@ -138,17 +138,3 @@ module DataAligner import riscV_pkg::*;(
     
 endmodule
             
-    
-    
-    
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-
