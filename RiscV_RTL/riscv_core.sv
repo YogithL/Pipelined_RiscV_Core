@@ -267,17 +267,15 @@ module riscv_core import riscV_pkg::*;(
     //Mem Write
         logic[31:0] alignedWD;
         logic[31:0] alignedRD;
+        logic[3:0] aligned_MemWrite;
         
         assign MemRead = outEX_MEM.MemReadM;
-        assign MemWrite = outEX_MEM.MemWriteM;
+        assign MemWrite = outEX_MEM.MemWriteM ? aligned_MemWrite : 4'b0000;
         assign Read_Addr = ALU_Out; 
         assign Write_Addr= outEX_MEM.ALUResultM;
         assign write_data = alignedWD;
         
         //inMEM_WB, outMEM_WB, and mem_wb module all declared previously in Decode
-            // =====================================
-            // ADDED: Pass Instruction to MEM/WB
-            // =====================================
             assign inMEM_WB.InstrW = outEX_MEM.InstrM;
             
             assign inMEM_WB.RdW = outEX_MEM.RdM;
@@ -302,16 +300,16 @@ module riscv_core import riscV_pkg::*;(
             .write_addr(outEX_MEM.ALUResultM),
             .read_data(forwardRDOut),
             .aligned_WD(alignedWD),
-            .aligned_RD(alignedRD)
-            );
-    
-    //Write Back
-        //Only consists of ResultMux which was handled back in Decode
-    
+            .aligned_RD(alignedRD),
+            .aligned_MemWrite(aligned_MemWrite)
+        );    
+        
+        //Write Back
+            //Only consists of ResultMux which was handled back in Decode
     
     //Hazard Control Unit 
         forward_ld_str_e forwardWD;
-        forward_str_ld_e forwardRD;
+        logic[3:0] forwardRD;
         
         HazardUnit hazard_unit(
             .Rs1AddrD(outIF_ID.instr[19:15]),
@@ -354,11 +352,24 @@ module riscv_core import riscV_pkg::*;(
         
         //Forwarding Muxes for STR -> LD
             always_comb begin
-                case(forwardRD)
-                    NO_FORWARD_RD: forwardRDOut = read_data;
-                    FORWARD_RD_WB: forwardRDOut = outMEM_WB.WriteDataW;
-                    default: forwardRDOut = read_data;
-                endcase
+                if(forwardRD[0] == 1'b0)
+                    forwardRDOut[7:0] = read_data[7:0];
+                else
+                    forwardRDOut[7:0] = outMEM_WB.WriteDataW[7:0];
+                
+                if(forwardRD[1] == 1'b0)
+                    forwardRDOut[15:8] = read_data[15:8];
+                else
+                    forwardRDOut[15:8] = outMEM_WB.WriteDataW[15:8];
+                
+                if(forwardRD[2] == 1'b0)
+                    forwardRDOut[23:16] = read_data[23:16];
+                else
+                    forwardRDOut[23:16] = outMEM_WB.WriteDataW[23:16];
+
+                if(forwardRD[3] == 1'b0)
+                    forwardRDOut[31:24] = read_data[31:24];
+                else
+                    forwardRDOut[31:24] = outMEM_WB.WriteDataW[31:24];
             end
-    
 endmodule

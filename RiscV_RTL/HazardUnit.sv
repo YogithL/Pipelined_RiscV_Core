@@ -8,7 +8,7 @@ module HazardUnit import riscV_pkg::*;(
     output forward_selA_e forwardA,
     output forward_selB_e forwardB,
     output forward_ld_str_e forwardWD,
-    output forward_str_ld_e forwardRD,
+    output logic[3:0] forwardRD,
     output logic pcEnable, IF_ID_Enable, FlushD, FlushE
     );
     
@@ -34,25 +34,27 @@ module HazardUnit import riscV_pkg::*;(
             forwardB = NO_FORWARD_B;
         
         //Stalling, need to get memWrite straight from control unit
-        if(memReadE && RdE != 0 && memWriteD == 0 && ((Rs1AddrD == RdE) || (Rs2AddrD == RdE))) begin
+        if((memReadE && RdE != 0) && //Term 1
+        ((Rs1AddrD == RdE) || (Rs2AddrD == RdE && memWriteD == 0)) //Term 2
+        ) begin
             pcEnable = 1'b0;
             IF_ID_Enable = 1'b0;
             FlushE = 1'b1;
         end
         
         //Operation -> Store
-        if(memWriteM && regWriteW && (Rs2AddrM == RdW) && (RdW != 5'b0))
+        if(memWriteM && memReadW && (Rs2AddrM == RdW) && (RdW != 5'b0))
             forwardWD = FORWARD_WD_WB;
         else
             forwardWD = NO_FORWARD_WD;
         
         //Store -> Load
-        if(memReadM && memWriteW && ALUResultM == ALUResultW)
-            forwardRD = FORWARD_RD_WB;
+        if(memReadM && memWriteW && ALUResultM[31:2] == ALUResultW[31:2])
+            forwardRD = memWriteW;
         else
-            forwardRD = NO_FORWARD_RD;
+            forwardRD = 4'b0000;
        
-       if (branchTaken) begin
+       if(branchTaken) begin
             FlushD = 1'b1;
             FlushE = 1'b1;
         end

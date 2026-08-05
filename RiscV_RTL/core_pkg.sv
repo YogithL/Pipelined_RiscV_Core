@@ -43,13 +43,6 @@ typedef enum logic
     FORWARD_WD_WB = 1'b1 
 } forward_ld_str_e;
 
-//For when a store occurs, then we need to load from there
-typedef enum logic
-{
-    NO_FORWARD_RD = 1'b0, 
-    FORWARD_RD_WB = 1'b1 
-} forward_str_ld_e;
-
 typedef enum logic[1:0]
 {
     MEM = 2'b00,
@@ -207,10 +200,7 @@ typedef struct packed
 {
     logic valid_opW;
 
-    //Data
-    // =====================================
-    logic[31:0] InstrW; // ADDED
-    // =====================================
+    logic[31:0] InstrW; 
     logic[4:0] RdW;
     logic[31:0] PCPlus4W;
     logic[31:0] ALUResultW;

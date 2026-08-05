@@ -121,11 +121,11 @@ module BranchControlUnit import riscV_pkg::*;(
         
         if(branchEnable) begin
             case(branchType)
-                BR_BEQ:  branchTakenCond = NZVC[1];
-                BR_BNE:  branchTakenCond = ~NZVC[1];
-                BR_BLT:  branchTakenCond = NZVC[0] ^ NZVC[2];
+                BR_BEQ: branchTakenCond = NZVC[1];
+                BR_BNE: branchTakenCond = ~NZVC[1];
+                BR_BLT: branchTakenCond = NZVC[0] ^ NZVC[2];
                 BR_BLTU: branchTakenCond = NZVC[3];
-                BR_BGE:  branchTakenCond = NZVC[1] || ~(NZVC[0] ^ NZVC[2]);
+                BR_BGE: branchTakenCond = NZVC[1] || ~(NZVC[0] ^ NZVC[2]);
                 BR_BGEU: branchTakenCond = NZVC[1] || ~NZVC[3];
                 default: branchTakenCond = 1'b0;
             endcase

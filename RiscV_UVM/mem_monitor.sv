@@ -24,7 +24,6 @@ class mem_monitor extends uvm_monitor;
         forever begin
             packet = mem_packet::type_id::create("packet");
                         
-            @(posedge mem_vif.clk);
                 fork
                     mem_vif.sampleMem(packet.mem_write, packet.mem_read, 
                                       packet.read_addr, packet.write_addr, 
@@ -33,7 +32,8 @@ class mem_monitor extends uvm_monitor;
                     mem_vif.sampleReadData(packet.read_data);
                 join
             
-            ap_mem.write(packet);
+            if(packet.mem_write > 0 || packet.mem_read)
+                ap_mem.write(packet);
         end
 
     endtask

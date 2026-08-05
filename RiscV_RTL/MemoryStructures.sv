@@ -62,16 +62,32 @@ module DataAligner import riscV_pkg::*;(
     input logic[31:0] write_addr,
     input logic[31:0] read_data,
     output logic[31:0] aligned_WD,
-    output logic[31:0] aligned_RD 
+    output logic[31:0] aligned_RD,
+    output logic[3:0] aligned_MemWrite
     );
     
     logic [1:0] rd_offset, wr_offset;
     assign rd_offset = read_addr[1:0];
     assign wr_offset = write_addr[1:0];
     
+    /*
+        funct3 for stores (sb/sh/sw = 000/001/010) numerically overlaps the signed load encodings, 
+        not the unsigned ones — stores have no sign concept at all, they just happen to alias BYTE_S/HALF_S/WORD 
+        in width_e. BYTE_U/HALF_U are load-only and unreachable here.
+    */
+    
+    always_comb begin
+        case(size)
+            WORD: aligned_MemWrite = 4'b1111;
+            HALF_S, HALF_U: aligned_MemWrite = 4'b0011 << wr_offset;
+            BYTE_S, BYTE_U: aligned_MemWrite = 4'b0001 << wr_offset;
+            default: aligned_MemWrite = 4'b0000;
+        endcase
+    end
+
     always_comb begin
         aligned_WD = 32'b0;
-        aligned_RD =  32'b0;
+        aligned_RD = 32'b0;
             
         case(size)
             WORD: begin
