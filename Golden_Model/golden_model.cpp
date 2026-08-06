@@ -1,5 +1,5 @@
 /*
-This implementation was  generated with AI assistance and has been
+This implementation was generated with AI assistance and has been
 reviewed/modified by me to fit my UVM enviroment.
 */
 

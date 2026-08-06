@@ -42,13 +42,13 @@ module HazardUnit import riscV_pkg::*;(
             FlushE = 1'b1;
         end
         
-        //Operation -> Store
+        //Load followed by a Store
         if(memWriteM && memReadW && (Rs2AddrM == RdW) && (RdW != 5'b0))
             forwardWD = FORWARD_WD_WB;
         else
             forwardWD = NO_FORWARD_WD;
         
-        //Store -> Load
+        //Store followed by a Load
         if(memReadM && memWriteW && ALUResultM[31:2] == ALUResultW[31:2])
             forwardRD = memWriteW;
         else
