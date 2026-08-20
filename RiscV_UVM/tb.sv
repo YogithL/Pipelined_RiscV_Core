@@ -37,15 +37,20 @@ module tb();
         .write_data(memBfm.write_data),
         .read_data(memBfm.read_data)
     );
-
-    assign regBfm.rd_data = dut.inMEM_WB.ReadDataW;
-    assign regBfm.rd_addr = dut.inMEM_WB.RdW;
-    assign regBfm.reg_write = dut.inMEM_WB.RegWriteW;
-    assign regBfm.retire_valid = dut.inMEM_WB.valid_opW;
-
+  	
+	assign instrBfm.current_pc = dut.outMEM_WB.PCPlus4W - 4;
+    assign instrBfm.monitor_instr = dut.outMEM_WB.InstrW; 
+  	assign instrBfm.validW = dut.outMEM_WB.valid_opW;
+  
+    assign regBfm.rd_data = (dut.outMEM_WB.RdW == 5'b0) ? 32'b0 : dut.resultMuxOut;
+    assign regBfm.rd_addr = dut.outMEM_WB.RdW;
+    assign regBfm.reg_write = dut.outMEM_WB.RegWriteW;
+    assign regBfm.retire_valid = dut.outMEM_WB.valid_opW;
+  
     assign pcBfm.branchEnable = dut.outID_EX.ControlFlags.Branch;
     assign pcBfm.branchTaken = dut.takeBranch;
     assign pcBfm.jumpEnable = dut.outID_EX.ControlFlags.Jump;
+  	assign pcBfm.validE = dut.outID_EX.valid_opE;
 
 	generate
         genvar i;

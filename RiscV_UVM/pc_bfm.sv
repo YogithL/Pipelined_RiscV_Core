@@ -5,7 +5,7 @@ interface pc_bfm(input clk);
     logic branchEnable;
     logic jumpEnable;
     logic[31:0] pcMuxOut;
-    logic exValid;
+    logic validE;
   
     task samplePC(output logic[31:0] pcMuxOut_in,
                   output logic branchTaken_in,
@@ -13,10 +13,10 @@ interface pc_bfm(input clk);
                   output logic jumpEnable_in,
                   output logic exValid_in);
         @(posedge clk);
-            pcMuxOut_in     = pcMuxOut;
-            branchTaken_in  = branchTaken;
+            pcMuxOut_in = pcMuxOut;
+            branchTaken_in = branchTaken;
             branchEnable_in = branchEnable;
-            jumpEnable_in   = jumpEnable;
-            exValid_in      = exValid;
+            jumpEnable_in = jumpEnable;
+            exValid_in = validE;
     endtask
 endinterface

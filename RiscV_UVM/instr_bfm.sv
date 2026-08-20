@@ -13,7 +13,7 @@ interface instr_bfm(input logic clk);
     task sampleInstr(output logic[31:0] instr_in, output logic[31:0] pc_in, output logic valid_in);
         @(posedge clk);
         instr_in = monitor_instr;
-        pc_in    = current_pc;
+        pc_in = current_pc;
         valid_in = validW;
     endtask
 endinterface

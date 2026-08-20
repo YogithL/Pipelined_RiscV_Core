@@ -25,9 +25,9 @@ class pc_monitor extends uvm_monitor;
             packet = pc_packet::type_id::create("packet");
 
             pc_vif.samplePC(packet.pcMuxOut, packet.branchTaken, 
-                            packet.branchEnable, packet.jumpEnable,  packet.exValid);
+                            packet.branchEnable, packet.jumpEnable,  packet.validE);
 
-            if((packet.branchEnable || packet.jumpEnable) && packet.exValid)
+            if((packet.branchEnable || packet.jumpEnable) && packet.validE)
                 ap_pc.write(packet);
         end
 
