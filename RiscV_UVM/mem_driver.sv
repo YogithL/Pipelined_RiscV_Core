@@ -25,7 +25,7 @@ class mem_driver extends uvm_driver#(mem_packet);
         logic [31:0] read_addr;
         logic [31:0] write_addr;
         logic [31:0] write_data;
-        bit  [31:0] word_base;
+        bit [31:0] word_base;
         logic[31:0] gathered_word;
 
         forever begin

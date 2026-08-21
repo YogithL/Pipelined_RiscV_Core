@@ -6,7 +6,8 @@ class pc_packet extends uvm_sequence_item;
     logic branchEnable;
     logic jumpEnable;
     logic[31:0] pcMuxOut;
-
+	logic exValid;
+  
     function new(string name = "pc_packet");
         super.new(name);
     endfunction

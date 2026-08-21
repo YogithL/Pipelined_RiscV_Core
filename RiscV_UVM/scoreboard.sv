@@ -49,6 +49,7 @@ class scoreboard extends uvm_scoreboard;
 
         opcodes_e opcode;
         width_e mem_width;
+        logic [31:0] expected_pc_pre;
         int expected_data_reg;
         int expected_data_mem;
         int expected_pc;
@@ -58,33 +59,36 @@ class scoreboard extends uvm_scoreboard;
 
             if(RegPacket.retire_valid == 1'b1) begin
                 instr_fifo.get(instrPacket);
-                
-              if(instrPacket.instr == 32'h00000000) begin
-                  continue; 
-              end
-              
-                opcode = opcodes_e'(instrPacket.instr[6:0]);
-              
-                golden_set_pc(instrPacket.current_pc);
-                
+                pc_fifo.get(PCPacket);
+
+                //Checks if the correct instruction was grabbed, relative to prior instruction
+                expected_pc_pre = golden_get_pc();
+
+                if(instrPacket.current_pc == expected_pc_pre)
+                    `uvm_info("PC_PASS", $sformatf("PC MATCH | Expected: 0x%08h | Actual: 0x%08h",
+                        expected_pc_pre, instrPacket.current_pc), UVM_HIGH)
+                else begin
+                    `uvm_error("PC_FAIL", $sformatf("PC MISMATCH! Expected: 0x%08h | Actual (RTL): 0x%08h",
+                        expected_pc_pre, instrPacket.current_pc))
+                    golden_set_pc(instrPacket.current_pc);
+                end
 
                 golden_step(instrPacket.instr);
 
+                //Grabbing relevant data prior to comparison
+                opcode = opcodes_e'(instrPacket.instr[6:0]);
                 mem_width = width_e'(instrPacket.instr[14:12]);
                 expected_data_reg = golden_get_reg(RegPacket.rd_addr);
                 expected_pc = golden_get_pc();
 
-                case(opcode) 
+                case(opcode)
                     OP_Store, OP_Load: begin
                         mem_fifo.get(MemPacket);
                         expected_data_mem = golden_read_mem(MemPacket.write_addr, mem_width);
                     end
-                    
-                    OP_Branch, OP_JAL, OP_JALR: begin
-                        pc_fifo.get(PCPacket);
-                    end
                 endcase
-                
+
+                //Comparison
                 case(opcode)
                     OP_Reg, OP_Imm, OP_Load, OP_LUI, OP_AUIPC: begin
                         if(RegPacket.rd_data == expected_data_reg)
@@ -143,38 +147,28 @@ class scoreboard extends uvm_scoreboard;
                     end
 
                     OP_Branch, OP_JAL, OP_JALR: begin
-                        logic [31:0] actual_rtl_pc;
-
-                        if (expected_pc == (instrPacket.current_pc + 4)) begin
-                            actual_rtl_pc = instrPacket.current_pc + 4;
-                        end else begin
-                            actual_rtl_pc = PCPacket.pcMuxOut; 
+                        if(opcode == OP_Branch && !PCPacket.branchTaken) begin
                         end
-
-                        if(actual_rtl_pc == expected_pc)
-                            `uvm_info(
-                                "BRANCH_PASS", 
-                                $sformatf("[%s] MATCH | Target PC: 0x%08h\n\tPacket: %s", 
-                                    opcode.name(),
-                                    actual_rtl_pc,
-                                    instrPacket.convert2string()
-                                ), 
-                                UVM_HIGH
-                            )
                         else begin
-                            `uvm_error(
-                                "BRANCH_FAIL", 
-                                $sformatf("[%s] MISMATCH! Expected Target PC: 0x%08h | Actual RTL PC: 0x%08h\n\tPacket: %s", 
-                                    opcode.name(),
-                                    expected_pc,
-                                    actual_rtl_pc,
-                                    instrPacket.convert2string()
+                            if(PCPacket.pcMuxOut == expected_pc)
+                                `uvm_info(
+                                    "PC_PASS",
+                                    $sformatf("[%s] MATCH | Target PC: 0x%08h\n\tPacket: %s",
+                                        opcode.name(), PCPacket.pcMuxOut, instrPacket.convert2string()
+                                    ),
+                                    UVM_HIGH
                                 )
-                            )
+                            else begin
+                                `uvm_error(
+                                    "PC_FAIL",
+                                    $sformatf("[%s] MISMATCH! Expected Target PC: 0x%08h | Actual RTL PC: 0x%08h\n\tPacket: %s",
+                                        opcode.name(), expected_pc, PCPacket.pcMuxOut, instrPacket.convert2string()
+                                    )
+                                )
+                            end
                         end
                     end
                 endcase
-                
             end
         end
     endtask

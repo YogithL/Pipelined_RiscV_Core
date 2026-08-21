@@ -26,6 +26,6 @@ class data_hazard_sequence extends uvm_sequence#(base_stim_packet);
                 end
             finish_item(consumer);
       end
-        endtask
+    endtask
 
 endclass
