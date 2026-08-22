@@ -65,10 +65,10 @@ class scoreboard extends uvm_scoreboard;
                 expected_pc_pre = golden_get_pc();
 
                 if(instrPacket.current_pc == expected_pc_pre)
-                    `uvm_info("PC_PASS", $sformatf("PC MATCH | Expected: 0x%08h | Actual: 0x%08h",
+                    `uvm_info("PC_PRECHECK_PASS", $sformatf("PC MATCH | Expected: 0x%08h | Actual: 0x%08h",
                         expected_pc_pre, instrPacket.current_pc), UVM_HIGH)
                 else begin
-                    `uvm_error("PC_FAIL", $sformatf("PC MISMATCH! Expected: 0x%08h | Actual (RTL): 0x%08h",
+                    `uvm_error("PC_PRECHECK_PASS", $sformatf("PC MISMATCH! Expected: 0x%08h | Actual (RTL): 0x%08h",
                         expected_pc_pre, instrPacket.current_pc))
                     golden_set_pc(instrPacket.current_pc);
                 end
@@ -95,7 +95,7 @@ class scoreboard extends uvm_scoreboard;
                             `uvm_info(
                                 "REG_PASS",
                                 $sformatf(
-                                    "[%s] MATCH | rd: x%0d | data: 0x%08h | Packet: %s", 
+                                    "[%s] MATCH | rd: x%0d | data: 0x%08h\n\tPacket: %s", 
                                     opcode.name(), 
                                     RegPacket.rd_addr, 
                                     RegPacket.rd_data, 
@@ -154,7 +154,7 @@ class scoreboard extends uvm_scoreboard;
                                 `uvm_info(
                                     "PC_PASS",
                                     $sformatf("[%s] MATCH | Target PC: 0x%08h\n\tPacket: %s",
-                                        opcode.name(), PCPacket.pcMuxOut, instrPacket.convert2string()
+                                        opcode.name(), PCPacket.pcMuxOut, PCPacket.convert2string()
                                     ),
                                     UVM_HIGH
                                 )
@@ -162,7 +162,7 @@ class scoreboard extends uvm_scoreboard;
                                 `uvm_error(
                                     "PC_FAIL",
                                     $sformatf("[%s] MISMATCH! Expected Target PC: 0x%08h | Actual RTL PC: 0x%08h\n\tPacket: %s",
-                                        opcode.name(), expected_pc, PCPacket.pcMuxOut, instrPacket.convert2string()
+                                        opcode.name(), expected_pc, PCPacket.pcMuxOut, PCPacket.convert2string()
                                     )
                                 )
                             end
