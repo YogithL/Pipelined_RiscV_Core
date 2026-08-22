@@ -14,13 +14,18 @@ package riscv_uvm_pkg;
     import "DPI-C" context function int  golden_read_mem(int addr, int width_enum);
     
     `include "base_stim_packet.sv"
-    `include "data_hazard_packet.sv"
     `include "mem_packet.sv"
     `include "pc_packet.sv"
     `include "reg_packet.sv"
 
     `include "rand_sequence.sv"
-    `include "data_hazard_sequence.sv"
+    `include "data_hazard_d1_seq.sv"
+    `include "data_hazard_d2_seq.sv"
+    `include "data_hazard_d3_seq.sv"
+    `include "data_hazard_ld_stall_seq.sv"
+    `include "mem_hazard_ld_str_seq.sv"
+    `include "mem_hazard_str_ld_seq.sv"
+    `include "hazard_seq_library.sv"
 
     `include "instr_monitor.sv"
     `include "mem_monitor.sv"
@@ -42,5 +47,6 @@ package riscv_uvm_pkg;
     `include "environment.sv"
     
     `include "base_test.sv"
+    `include "hazard_test.sv"
 
 endpackage: riscv_uvm_pkg
