@@ -1,6 +1,6 @@
 
 interface instr_bfm(input logic clk);
-    logic[31:0] instr;
+    logic[31:0] instr = 32'h00000013;
     logic[31:0] monitor_instr;
     logic[31:0] current_pc;
     logic validW;

@@ -21,15 +21,20 @@ class hazard_test extends uvm_test;
     endfunction
 
     task run_phase(uvm_phase phase);
+        nop_preamble_seq preamble;
         hazard_seq_library lib;
         phase.raise_objection(this);
+
+        preamble = nop_preamble_seq::type_id::create("preamble");
+        preamble.num_nops = 20;
+        preamble.start(env.instrAgent.instrSequencer);
 
         lib = hazard_seq_library::type_id::create("lib");
         lib.min_random_count = 1000;
         lib.max_random_count = 1000;
-        lib.selection_mode   = UVM_SEQ_LIB_RANDC;
+        lib.selection_mode = UVM_SEQ_LIB_RANDC;
 
-        lib.start(env.instr_agent.sequencer);
+        lib.start(env.instrAgent.instrSequencer);
 
         phase.drop_objection(this);
     endtask

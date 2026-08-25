@@ -18,6 +18,7 @@ class base_stim_packet extends uvm_sequence_item;
     rand bit[31:0] imm;
 
     bit[31:0] instr;
+  	bit[31:0] current_pc;
 
     constraint instr_format
     {
@@ -30,6 +31,15 @@ class base_stim_packet extends uvm_sequence_item;
 
         (opcode == OP_LUI || opcode == OP_AUIPC || opcode == OP_JAL) 
         -> (funct3 == 0 && rs1 == 0 && rs2 == 0 && funct7 == 0);
+    }
+
+    constraint mem_alignment
+    {
+        (opcode == OP_Load && mem_widths_f3 == WORD) -> (imm[1:0] == 2'b00);
+        (opcode == OP_Store && mem_widths_f3 == WORD) -> (imm[1:0] == 2'b00);
+        (opcode == OP_Load && mem_widths_f3 == HALF_S) -> (imm[0] == 1'b0);
+        (opcode == OP_Load && mem_widths_f3 == HALF_U) -> (imm[0] == 1'b0);
+        (opcode == OP_Store && mem_widths_f3 == HALF_S) -> (imm[0] == 1'b0);
     }
 
     constraint funct3_format
@@ -49,6 +59,10 @@ class base_stim_packet extends uvm_sequence_item;
             actual_f7 = alu_opps_f3[3] ? 7'b0100000 : 7'b0000000;
         else
             actual_f7 = 7'b0000000; 
+
+        if(^instr === 1'bx)
+            $display("[INSTR_X] time=%0t opcode=%s imm=%08h rd=%0d rs1=%0d rs2=%0d funct3=%0d instr=%08h",
+                $time, opcode.name(), imm, rd, rs1, rs2, funct3, instr);
 
         case(opcode)
             // R-Type

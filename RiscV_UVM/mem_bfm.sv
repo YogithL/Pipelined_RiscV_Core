@@ -6,8 +6,8 @@ interface mem_bfm(input logic clk);
     logic[31:0] Read_Addr;
     logic[31:0] Write_Addr;
     logic[31:0] write_data;
-    logic[31:0] read_data;
-
+    logic[31:0] read_data = 32'h00000000;
+    
     task sampleMem(output logic[3:0] MemWrite_in,
                    output logic MemRead_in,
                    output logic[31:0] Read_Addr_in,

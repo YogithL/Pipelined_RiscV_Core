@@ -17,6 +17,8 @@ class scoreboard extends uvm_scoreboard;
         super.new(name, parent);
     endfunction
     
+    bit first_instr_seen = 0;
+
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
         golden_init();
@@ -62,13 +64,18 @@ class scoreboard extends uvm_scoreboard;
                 pc_fifo.get(PCPacket);
 
                 //Checks if the correct instruction was grabbed, relative to prior instruction
+                if(!first_instr_seen) begin
+                    golden_set_pc(instrPacket.current_pc);
+                    first_instr_seen = 1;
+                end
                 expected_pc_pre = golden_get_pc();
+
 
                 if(instrPacket.current_pc == expected_pc_pre)
                     `uvm_info("PC_PRECHECK_PASS", $sformatf("PC MATCH | Expected: 0x%08h | Actual: 0x%08h",
                         expected_pc_pre, instrPacket.current_pc), UVM_HIGH)
                 else begin
-                    `uvm_error("PC_PRECHECK_PASS", $sformatf("PC MISMATCH! Expected: 0x%08h | Actual (RTL): 0x%08h",
+                    `uvm_error("PC_PRECHECK_FAIL", $sformatf("PC MISMATCH! Expected: 0x%08h | Actual (RTL): 0x%08h",
                         expected_pc_pre, instrPacket.current_pc))
                     golden_set_pc(instrPacket.current_pc);
                 end
@@ -95,9 +102,11 @@ class scoreboard extends uvm_scoreboard;
                             `uvm_info(
                                 "REG_PASS",
                                 $sformatf(
-                                    "[%s] MATCH | rd: x%0d | data: 0x%08h\n\tPacket: %s", 
+                                    "[%s] MATCH | rd: x%0d | rs1: x%0d | rs2: x%0d | data: 0x%08h\n\tPacket: %s", 
                                     opcode.name(), 
                                     RegPacket.rd_addr, 
+                                    instrPacket.rs1,
+                                    instrPacket.rs2,
                                     RegPacket.rd_data, 
                                     RegPacket.convert2string()
                                 ), 
@@ -106,9 +115,11 @@ class scoreboard extends uvm_scoreboard;
                         else begin
                             `uvm_error(
                                 "REG_FAIL",
-                                $sformatf("[%s] MISMATCH! rd: x%0d | Expected: 0x%08h | Actual (RTL): 0x%08h\n\tPacket: %s", 
+                                $sformatf("[%s] MISMATCH! rd: x%0d | rs1: x%0d | rs2: x%0d | Expected: 0x%08h | Actual (RTL): 0x%08h\n\tPacket: %s", 
                                     opcode.name(), 
                                     RegPacket.rd_addr, 
+                                    instrPacket.rs1,
+                                    instrPacket.rs2,
                                     expected_data_reg, 
                                     RegPacket.rd_data, 
                                     RegPacket.convert2string()
@@ -122,11 +133,13 @@ class scoreboard extends uvm_scoreboard;
                         if(MemPacket.write_data == expected_data_mem)
                             `uvm_info(
                                 "MEM_PASS", 
-                                $sformatf("[%s] MATCH | Addr: 0x%08h | Data: 0x%08h | Width: %s\n\tPacket: %s", 
+                                $sformatf("[%s] MATCH | Addr: 0x%08h | Data: 0x%08h | Width: %s | rs1: x%0d | rs2: x%0d\n\tPacket: %s", 
                                     opcode.name(),
                                     MemPacket.write_addr,
                                     MemPacket.write_data,
                                     mem_width.name(),
+                                    instrPacket.rs1,
+                                    instrPacket.rs2,
                                     MemPacket.convert2string()
                                 ), 
                                 UVM_HIGH
@@ -134,11 +147,13 @@ class scoreboard extends uvm_scoreboard;
                         else begin
                             `uvm_error(
                                 "MEM_FAIL", 
-                                $sformatf("[%s] MISMATCH! Addr: 0x%08h | Expected Data: 0x%08h | Actual RTL Data: 0x%08h\n\tPacket: %s", 
+                                $sformatf("[%s] MISMATCH! Addr: 0x%08h | Expected Data: 0x%08h | Actual RTL Data: 0x%08h | rs1: x%0d | rs2: x%0d\n\tPacket: %s", 
                                     opcode.name(),
                                     MemPacket.write_addr,
                                     expected_data_mem,
                                     MemPacket.write_data,
+                                    instrPacket.rs1,
+                                    instrPacket.rs2,
                                     MemPacket.convert2string()
                                 )
                             )
@@ -149,25 +164,26 @@ class scoreboard extends uvm_scoreboard;
                     OP_Branch, OP_JAL, OP_JALR: begin
                         if(opcode == OP_Branch && !PCPacket.branchTaken) begin
                         end
+
                         else begin
                             if(PCPacket.pcMuxOut == expected_pc)
                                 `uvm_info(
                                     "PC_PASS",
-                                    $sformatf("[%s] MATCH | Target PC: 0x%08h\n\tPacket: %s",
-                                        opcode.name(), PCPacket.pcMuxOut, PCPacket.convert2string()
+                                    $sformatf("[%s] MATCH | Target PC: 0x%08h | rs1: x%0d | rs2: x%0d\n\tPacket: %s",
+                                        opcode.name(), PCPacket.pcMuxOut, instrPacket.rs1, instrPacket.rs2, PCPacket.convert2string()
                                     ),
                                     UVM_HIGH
                                 )
                             else begin
                                 `uvm_error(
                                     "PC_FAIL",
-                                    $sformatf("[%s] MISMATCH! Expected Target PC: 0x%08h | Actual RTL PC: 0x%08h\n\tPacket: %s",
-                                        opcode.name(), expected_pc, PCPacket.pcMuxOut, PCPacket.convert2string()
+                                    $sformatf("[%s] MISMATCH! Expected Target PC: 0x%08h | Actual RTL PC: 0x%08h | rs1: x%0d | rs2: x%0d\n\tPacket: %s",
+                                        opcode.name(), expected_pc, PCPacket.pcMuxOut, instrPacket.rs1, instrPacket.rs2, PCPacket.convert2string()
                                     )
                                 )
                             end
                         end
-                    end
+                    end                
                 endcase
             end
         end

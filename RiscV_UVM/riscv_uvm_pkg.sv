@@ -25,6 +25,7 @@ package riscv_uvm_pkg;
     `include "data_hazard_ld_stall_seq.sv"
     `include "mem_hazard_ld_str_seq.sv"
     `include "mem_hazard_str_ld_seq.sv"
+    `include "nop_preamble_seq.sv"
     `include "hazard_seq_library.sv"
 
     `include "instr_monitor.sv"
