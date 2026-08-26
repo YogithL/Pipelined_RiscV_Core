@@ -7,7 +7,6 @@ class rand_sequence extends uvm_sequence#(base_stim_packet);
     endfunction
 
     virtual task body();
-        repeat(100) begin
             req = base_stim_packet::type_id::create("req");
 
             start_item(req);
@@ -17,7 +16,6 @@ class rand_sequence extends uvm_sequence#(base_stim_packet);
             end
             
             finish_item(req);
-        end
     endtask
 
 endclass
