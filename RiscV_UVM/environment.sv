@@ -7,6 +7,7 @@ class environment extends uvm_env;
     reg_agent regAgent;
     mem_agent memAgent;
     scoreboard scoreBoard;
+    coverages covGroup;
 
     function new(string name = "environment", uvm_component parent);
         super.new(name, parent);
@@ -20,8 +21,7 @@ class environment extends uvm_env;
         regAgent = reg_agent::type_id::create("regAgent", this);
         memAgent = mem_agent::type_id::create("memAgent", this);
         scoreBoard = scoreboard::type_id::create("scoreBoard", this);
-
-        //need to add coverage group later
+        covGroup = coverages::type_id::create("covGroup", this);
 
     endfunction
 
@@ -33,6 +33,6 @@ class environment extends uvm_env;
         regAgent.ap_reg.connect(scoreBoard.reg_export);
         memAgent.ap_mem.connect(scoreBoard.mem_export);
 
-        //need to add coverage group later
+        instrAgent.ap_instr.connect(covGroup.analysis_export);
     endfunction
 endclass
